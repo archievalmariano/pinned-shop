@@ -1,0 +1,94 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { faq, site } from '../data/site';
+import { link } from '../lib/link';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faq.flatMap((g) =>
+    g.items.map((i) => ({
+      '@type': 'Question',
+      name: i.q,
+      acceptedAnswer: { '@type': 'Answer', text: i.a },
+    })),
+  ),
+};
+---
+
+<BaseLayout title="FAQ" path="/faq" description="Questions about Pinned: the pins, the demo shop, and how any of this works." jsonLd={jsonLd}>
+  <header class="container section--tight faq-header">
+    <p class="eyebrow">FAQ</p>
+    <h1 class="display-4">Reasonable questions, mostly.</h1>
+    <p class="faq-lede">If your question isn't here, <a href={link('/contact')} class="link-underline">send it over</a>. We answer in the demo the same way we answer everything: eventually and warmly.</p>
+  </header>
+
+  <section class="container--narrow section--tight">
+    {faq.map((group) => (
+      <div class="faq-group">
+        <h2 class="faq-group-title">{group.group}</h2>
+        {group.items.map((item) => (
+          <details class="faq-item">
+            <summary>{item.q}</summary>
+            <p>{item.a}</p>
+          </details>
+        ))}
+      </div>
+    ))}
+
+    <p class="faq-foot">{site.disclosure}</p>
+  </section>
+</BaseLayout>
+
+<style>
+  .faq-header { padding-top: var(--sp-5); }
+  .faq-lede { margin-top: var(--sp-3); font-size: var(--step-1); color: var(--ink-soft); max-width: 50ch; }
+  .faq-group { margin-bottom: var(--sp-5); }
+  .faq-group-title {
+    font-size: var(--step-1);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-family: var(--font-text);
+    font-weight: 700;
+    padding-bottom: var(--sp-2);
+    margin-bottom: var(--sp-2);
+    border-bottom: var(--rule-w) solid var(--ink);
+  }
+  .faq-item {
+    border-bottom: 1.5px solid var(--paper-3);
+    padding: var(--sp-3) 0;
+  }
+  .faq-item summary {
+    font-family: var(--font-display);
+    font-size: var(--step-1);
+    font-weight: 560;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-3);
+    align-items: baseline;
+  }
+  .faq-item summary::-webkit-details-marker { display: none; }
+  .faq-item summary::after {
+    content: '+';
+    font-family: var(--font-text);
+    color: var(--brand);
+    font-weight: 700;
+  }
+  .faq-item[open] summary::after { content: '–'; }
+  .faq-item p {
+    margin-top: var(--sp-2);
+    color: var(--ink-soft);
+    max-width: 60ch;
+  }
+  .faq-foot {
+    margin-top: var(--sp-4);
+    padding: var(--sp-3);
+    border: 1.5px dashed var(--ink);
+    border-radius: var(--r-sm);
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    background: var(--paper-2);
+  }
+</style>

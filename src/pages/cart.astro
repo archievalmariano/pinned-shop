@@ -1,0 +1,269 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { link } from '../lib/link';
+---
+
+<BaseLayout title="Cart" path="/cart" description="Your Pinned cart and saved pins, stored locally in your browser.">
+  <div class="container section--tight cartpage">
+    <header class="cartpage-head">
+      <h1 class="display-4">Your cart</h1>
+      <p class="cartpage-sub" data-cart-summary>Loading…</p>
+    </header>
+
+    <div class="cartpage-grid">
+      <section class="cartpage-lines" aria-label="Cart items">
+        <div data-page-cart></div>
+      </section>
+
+      <aside class="cartpage-summary" data-page-summary hidden>
+        <h2 class="sum-title">Summary</h2>
+        <div class="sum-row"><span>Subtotal</span><span data-page-subtotal>₱0</span></div>
+        <div class="sum-row sum-row--muted"><span>Shipping</span><span>Calculated at checkout</span></div>
+        <div class="sum-row sum-row--muted"><span>The pin you'll add last minute</span><span>Inevitable</span></div>
+        <a href={link('/checkout')} class="btn btn--block sum-checkout">Checkout (demo)</a>
+        <button type="button" class="sum-clear" data-clear-cart>Empty the cart</button>
+        <p class="sum-note">Everything here lives in your browser only. No account, no server, no shipping.</p>
+      </aside>
+    </div>
+
+    <section class="saved-section" aria-label="Saved for later">
+      <div class="saved-head">
+        <h2 class="display-3">Pinned for later</h2>
+        <span class="saved-count" data-saved-total></span>
+      </div>
+      <div data-saved-grid class="saved-grid"></div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .cartpage { padding-top: var(--sp-5); }
+  .cartpage-head { margin-bottom: var(--sp-4); }
+  .cartpage-sub { color: var(--ink-soft); margin-top: var(--sp-2); }
+  .cartpage-grid {
+    display: grid;
+    grid-template-columns: 1.7fr 1fr;
+    gap: var(--sp-5);
+    align-items: start;
+  }
+  .cartpage-summary {
+    border: var(--rule-w-bold) solid var(--ink);
+    border-radius: var(--r-md);
+    padding: var(--sp-4);
+    background: var(--card);
+    position: sticky;
+    top: 90px;
+  }
+  .sum-title { font-size: var(--step-2); margin-bottom: var(--sp-3); }
+  .sum-row {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--sp-2) 0;
+    border-bottom: 1.5px solid var(--paper-3);
+  }
+  .sum-row--muted { color: var(--ink-faint); font-size: var(--step--1); }
+  .sum-checkout { margin-top: var(--sp-3); }
+  .sum-clear {
+    display: block;
+    margin: var(--sp-2) auto 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--step--1);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    color: var(--ink-soft);
+  }
+  .sum-clear:hover { color: var(--brand-ink); }
+  .sum-note { margin-top: var(--sp-3); font-size: var(--step--1); color: var(--ink-faint); }
+
+  .saved-section { margin-top: var(--sp-6); }
+  .saved-head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--sp-3);
+    padding-bottom: var(--sp-2);
+    margin-bottom: var(--sp-4);
+    border-bottom: var(--rule-w) solid var(--ink);
+  }
+  .saved-count { color: var(--ink-soft); font-size: var(--step--1); }
+  .saved-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-3);
+  }
+
+  /* line rows (page variant) */
+  :global(.page-line) {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    gap: var(--sp-3);
+    padding: var(--sp-3) 0;
+    border-bottom: 1.5px solid var(--paper-3);
+    align-items: center;
+  }
+  :global(.page-line-swatch) {
+    width: 72px; height: 72px;
+    border-radius: var(--r-md);
+    background: color-mix(in srgb, var(--enamel, var(--paper-2)) 12%, var(--card));
+    display: grid; place-items: center;
+    padding: 8px;
+  }
+  :global(.page-line-swatch svg) {
+    width: 100%; height: auto;
+  }
+  :global(.page-line-name) { font-family: var(--font-display); font-size: var(--step-1); }
+  :global(.page-line-name a:hover) { color: var(--brand-ink); }
+  :global(.page-line-variant) { font-size: var(--step--1); color: var(--ink-soft); }
+  :global(.page-line-controls) { display: flex; align-items: center; gap: var(--sp-3); margin-top: 0.4rem; }
+  :global(.page-qty) {
+    display: inline-flex; align-items: center;
+    border: 1.5px solid var(--ink); border-radius: var(--r-sm);
+  }
+  :global(.page-qty button) { width: 30px; height: 30px; background: none; border: none; cursor: pointer; font-size: 1.1rem; }
+  :global(.page-qty span) { min-width: 30px; text-align: center; font-weight: 600; }
+  :global(.page-remove) {
+    background: none; border: none; cursor: pointer;
+    font-size: var(--step--1); text-decoration: underline; text-underline-offset: 2px; color: var(--ink-soft);
+  }
+  :global(.page-remove:hover) { color: var(--brand-ink); }
+  :global(.page-line-total) { text-align: right; font-weight: 600; font-size: var(--step-1); }
+  :global(.cartpage-empty) {
+    padding: var(--sp-6) 0; text-align: center;
+    border: var(--rule-w) dashed var(--ink); border-radius: var(--r-md);
+    background: var(--paper-2);
+  }
+  :global(.cartpage-empty h2) { font-size: var(--step-3); margin-bottom: var(--sp-2); }
+  :global(.cartpage-empty p) { color: var(--ink-soft); margin-bottom: var(--sp-3); }
+  :global(.saved-empty) { color: var(--ink-soft); padding: var(--sp-3) 0; }
+
+  @media (max-width: 900px) {
+    .cartpage-grid { grid-template-columns: 1fr; }
+    .cartpage-summary { position: static; }
+    .saved-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 460px) { .saved-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { getCart, setQty, removeLine, clearCart, onCartChange } from '../lib/cart';
+  import { getSaved, toggleSaved, onSavedChange } from '../lib/wishlist';
+  import { productBySlug } from '../data/products';
+  import { formatPeso } from '../lib/format';
+  import { addToCart } from '../lib/cart';
+  import { link } from '../lib/link';
+
+  // Clone the real PinArt SVG for a product from its hidden <template>
+  // (rendered globally by the cart drawer). No image files, no requests.
+  function pinSvg(slug: string): string {
+    const t = document.querySelector(`[data-pin-template="${slug}"]`);
+    return t ? t.innerHTML : '';
+  }
+
+  const cartEl = document.querySelector('[data-page-cart]') as HTMLElement;
+  const summaryEl = document.querySelector('[data-page-summary]') as HTMLElement;
+  const subtotalEl = document.querySelector('[data-page-subtotal]') as HTMLElement;
+  const cartSub = document.querySelector('[data-cart-summary]') as HTMLElement;
+  const savedGrid = document.querySelector('[data-saved-grid]') as HTMLElement;
+  const savedTotal = document.querySelector('[data-saved-total]') as HTMLElement;
+
+  function renderCart() {
+    const { lines, subtotal, count } = getCart();
+    cartSub.textContent =
+      count === 0 ? 'Empty, for now.' : `${count} ${count === 1 ? 'pin' : 'pins'}, ${formatPeso(subtotal)} before shipping.`;
+    if (count === 0) {
+      cartEl.innerHTML = `
+        <div class="cartpage-empty">
+          <h2>Nothing pinned yet.</h2>
+          <p>An empty cart is a collection too. Just a very disciplined one.</p>
+          <a href="${link('/shop')}" class="btn">Browse the shop</a>
+        </div>`;
+      summaryEl.hidden = true;
+      return;
+    }
+    summaryEl.hidden = false;
+    subtotalEl.textContent = formatPeso(subtotal);
+    cartEl.innerHTML = lines
+      .map(
+        (l) => `
+      <div class="page-line">
+        <div class="page-line-swatch" style="--enamel:${l.product.colorway}">${pinSvg(l.slug)}</div>
+        <div>
+          <div class="page-line-name"><a href="${link(`/products/${l.slug}`)}">${l.product.name}</a></div>
+          ${l.variantLabel ? `<div class="page-line-variant">${l.variantLabel}</div>` : ''}
+          <div class="page-line-controls">
+            <div class="page-qty" data-id="${l.id}">
+              <button type="button" data-dec aria-label="Decrease quantity">–</button>
+              <span>${l.qty}</span>
+              <button type="button" data-inc aria-label="Increase quantity">+</button>
+            </div>
+            <button type="button" class="page-remove" data-remove="${l.id}">Remove</button>
+          </div>
+        </div>
+        <div class="page-line-total">${formatPeso(l.lineTotal)}</div>
+      </div>`,
+      )
+      .join('');
+    cartEl.querySelectorAll('.page-qty').forEach((q) => {
+      const id = (q as HTMLElement).dataset.id!;
+      const cur = () => getCart().lines.find((l) => l.id === id)?.qty ?? 0;
+      q.querySelector('[data-inc]')?.addEventListener('click', () => setQty(id, cur() + 1));
+      q.querySelector('[data-dec]')?.addEventListener('click', () => setQty(id, cur() - 1));
+    });
+    cartEl.querySelectorAll('[data-remove]').forEach((b) =>
+      b.addEventListener('click', () => removeLine((b as HTMLElement).dataset.remove!)),
+    );
+  }
+
+  function renderSaved() {
+    const slugs = getSaved();
+    savedTotal.textContent = slugs.length ? `${slugs.length} saved` : '';
+    if (slugs.length === 0) {
+      savedGrid.innerHTML = `<p class="saved-empty">Nothing saved. Tap the heart on any pin to keep it here for later.</p>`;
+      return;
+    }
+    savedGrid.innerHTML = slugs
+      .map((slug) => {
+        const p = productBySlug[slug];
+        if (!p) return '';
+        const out = p.status === 'sold-out';
+        return `
+        <div class="card" style="--enamel:${p.colorway}">
+          <a href="${link(`/products/${p.slug}`)}" class="card-media" style="background:color-mix(in srgb, ${p.colorway} 10%, var(--card));display:grid;place-items:center;aspect-ratio:1;padding:var(--sp-4)">
+            <span style="width:72%;display:block">${pinSvg(p.slug)}</span>
+          </a>
+          <div class="card-body" style="padding:var(--sp-3)">
+            <h3 class="card-name" style="font-family:var(--font-display);font-size:var(--step-1)"><a href="${link(`/products/${p.slug}`)}">${p.name}</a></h3>
+            <p class="card-tagline" style="font-size:var(--step--1);color:var(--ink-soft)">${formatPeso(p.price)}</p>
+            <div style="display:flex;gap:var(--sp-2);margin-top:var(--sp-2)">
+              ${out ? '<span class="card-cta--out">Sold out</span>' : `<button type="button" class="card-cta" data-saved-add="${p.slug}">Add</button>`}
+              <button type="button" class="page-remove" data-saved-remove="${p.slug}">Unpin</button>
+            </div>
+          </div>
+        </div>`;
+      })
+      .join('');
+    savedGrid.querySelectorAll('[data-saved-add]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const slug = (b as HTMLElement).dataset.savedAdd!;
+        const p = productBySlug[slug];
+        const defaults: Record<string, string> = {};
+        for (const g of p?.variants ?? []) defaults[g.id] = g.choices[0].id;
+        addToCart(slug, defaults, 1);
+        window.dispatchEvent(new CustomEvent('pinned:cart:open'));
+      }),
+    );
+    savedGrid.querySelectorAll('[data-saved-remove]').forEach((b) =>
+      b.addEventListener('click', () => toggleSaved((b as HTMLElement).dataset.savedRemove!)),
+    );
+  }
+
+  document.querySelector('[data-clear-cart]')?.addEventListener('click', () => {
+    if (confirm('Empty the whole cart?')) clearCart();
+  });
+
+  renderCart();
+  renderSaved();
+  onCartChange(renderCart);
+  onSavedChange(renderSaved);
+</script>

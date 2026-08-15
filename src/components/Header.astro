@@ -1,0 +1,277 @@
+---
+import { mainNav, site } from '../data/site';
+import { link } from '../lib/link';
+// Compare against a base-stripped path so active states work under a subpath.
+const basePrefix = import.meta.env.BASE_URL.replace(/\/$/, '');
+const rawPath = Astro.url.pathname;
+const path =
+  basePrefix && rawPath.startsWith(basePrefix) ? rawPath.slice(basePrefix.length) || '/' : rawPath;
+function isActive(href: string) {
+  if (href === '/shop') return path === '/shop' || path.startsWith('/collections') || path.startsWith('/products');
+  return path === href || path.startsWith(href + '/');
+}
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href={link('/')} aria-label={`${site.name}, home`}>
+      <span class="brand-dot" aria-hidden="true"></span>
+      <span class="brand-word">Pinned</span>
+    </a>
+
+    <nav class="nav-desktop" aria-label="Primary">
+      <ul>
+        {mainNav.map((item) => (
+          <li>
+            <a
+              href={link(item.href)}
+              class:list={['nav-link', { 'is-active': isActive(item.href) }]}
+            >
+              {item.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="header-actions">
+      <a href={link('/board')} class="header-icon" aria-label="The Board" title="The Board">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="16" rx="1.5" />
+          <path d="M8 9h.01M13 9l3 3M9 14l4-1" />
+        </svg>
+      </a>
+      <a href={link('/cart')} class="header-icon saved-link" aria-label="Pinned for later">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 21s-7-4.6-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 3.5C19 16.4 12 21 12 21z" />
+        </svg>
+        <span class="count-badge" data-saved-count hidden>0</span>
+      </a>
+      <button type="button" class="header-cart" data-cart-open aria-label="Open cart">
+        <span>Cart</span>
+        <span class="count-badge count-badge--cart" data-cart-count>0</span>
+      </button>
+      <button type="button" class="menu-toggle" data-menu-toggle aria-expanded="false" aria-controls="mobile-nav" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <nav class="nav-mobile" id="mobile-nav" data-mobile-nav hidden aria-label="Primary mobile">
+    <ul class="container">
+      {mainNav.map((item) => (
+        <li><a href={link(item.href)} class="nav-link">{item.label}</a></li>
+      ))}
+      <li><a href={link('/board')} class="nav-link">The Board</a></li>
+      <li><a href={link('/faq')} class="nav-link">FAQ</a></li>
+      <li><a href={link('/contact')} class="nav-link">Contact</a></li>
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--paper);
+    border-bottom: 1px solid var(--hair);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    min-height: 66px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: auto;
+  }
+  .brand-word {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+  }
+  .brand-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    background: var(--brand);
+  }
+  .nav-desktop ul {
+    display: flex;
+    gap: var(--sp-4);
+    margin-right: var(--sp-4);
+  }
+  .nav-link {
+    font-weight: 500;
+    font-size: var(--step-0);
+    padding: 0.25rem 0;
+    color: var(--ink-soft);
+    border-bottom: 1.5px solid transparent;
+    transition: color 0.15s;
+  }
+  .nav-link:hover {
+    color: var(--ink);
+  }
+  .nav-link.is-active {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .header-icon {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--r-sm);
+    background: transparent;
+    color: var(--ink-soft);
+    transition: background 0.15s, color 0.15s;
+  }
+  .header-icon:hover {
+    background: var(--paper-2);
+    color: var(--ink);
+  }
+  .header-cart {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    padding: 0.55rem 1rem;
+    background: var(--ink);
+    color: var(--paper);
+    border: 1px solid var(--ink);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .header-cart:hover {
+    background: #000;
+  }
+  .count-badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    display: inline-grid;
+    place-items: center;
+    font-family: var(--font-text);
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1;
+    background: var(--brand);
+    color: #fff;
+    border-radius: 999px;
+  }
+  .count-badge--cart {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .saved-link .count-badge {
+    position: absolute;
+    top: -7px;
+    right: -7px;
+    border: 1.5px solid var(--ink);
+  }
+  .menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: 40px;
+    height: 40px;
+    padding: 0 9px;
+    background: transparent;
+    border: 1px solid var(--hair-strong);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+  }
+  .menu-toggle span {
+    height: 2.5px;
+    background: var(--ink);
+    border-radius: 2px;
+  }
+  .nav-mobile {
+    border-top: var(--rule-w) solid var(--ink);
+    background: var(--paper);
+  }
+  .nav-mobile ul {
+    display: flex;
+    flex-direction: column;
+    padding-block: var(--sp-3);
+  }
+  .nav-mobile li {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--paper-3);
+  }
+  .nav-mobile .nav-link {
+    font-family: var(--font-display);
+    font-size: 1.4rem;
+  }
+
+  @media (max-width: 860px) {
+    .nav-desktop {
+      display: none;
+    }
+    .menu-toggle {
+      display: flex;
+    }
+    .header-cart span:first-child {
+      display: none;
+    }
+  }
+  @media (max-width: 420px) {
+    .brand-word {
+      font-size: 1.35rem;
+    }
+  }
+</style>
+
+<script>
+  import { getCart, onCartChange } from '../lib/cart';
+  import { getSaved, onSavedChange } from '../lib/wishlist';
+
+  function renderCart() {
+    const { count } = getCart();
+    document.querySelectorAll('[data-cart-count]').forEach((el) => {
+      el.textContent = String(count);
+      (el as HTMLElement).hidden = false;
+    });
+  }
+  function renderSaved() {
+    const n = getSaved().length;
+    document.querySelectorAll('[data-saved-count]').forEach((el) => {
+      el.textContent = String(n);
+      (el as HTMLElement).hidden = n === 0;
+    });
+  }
+
+  renderCart();
+  renderSaved();
+  onCartChange(renderCart);
+  onSavedChange(renderSaved);
+
+  // Open cart drawer
+  document.querySelectorAll('[data-cart-open]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('pinned:cart:open'));
+    });
+  });
+
+  // Mobile menu
+  const toggle = document.querySelector('[data-menu-toggle]');
+  const nav = document.querySelector('[data-mobile-nav]') as HTMLElement | null;
+  toggle?.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    if (nav) nav.hidden = open;
+  });
+</script>

@@ -1,0 +1,275 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PinArt from '../components/PinArt.astro';
+import { products } from '../data/products';
+---
+
+<BaseLayout title="The Board" path="/board" description="A small interactive corkboard. Pin the objects you like and arrange them however you please. Local to your browser.">
+  <div class="container section--tight board-page">
+    <header class="board-head">
+      <div>
+        <p class="eyebrow">The Board</p>
+        <h1 class="display-4">Pin the ones you like. Move them around. Leave them.</h1>
+        <p class="board-lede">
+          A corkboard that only you can see. Drag pins anywhere, arrange them into a mood, a wishlist,
+          or a mess. It saves to this browser, no account, no server.
+        </p>
+      </div>
+      <div class="board-controls">
+        <button type="button" class="btn btn--ghost" data-board-random>Pin one at random</button>
+        <button type="button" class="btn btn--ghost" data-board-clear>Clear the board</button>
+      </div>
+    </header>
+
+    <div class="board-layout">
+      <div class="board-surface" data-board aria-label="Corkboard: drag pins to arrange them">
+        <p class="board-hint" data-board-hint>Add a pin from the tray →</p>
+      </div>
+
+      <aside class="board-tray" aria-label="Pins you can add">
+        <h2 class="tray-title">The tray</h2>
+        <ul class="tray-list">
+          {products.map((p) => (
+            <li>
+              <button type="button" class="tray-item" data-add-pin={p.slug} style={`--enamel:${p.colorway}`}>
+                <span class="tray-dot" style={`background:${p.colorway}`}></span>
+                <span class="tray-name">{p.name}</span>
+                <span class="tray-plus" aria-hidden="true">+</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </aside>
+    </div>
+
+    <p class="board-foot">Double-tap a pin to take it off the board. Everything here is local and low-stakes.</p>
+
+    <!-- Hidden pin artwork templates, cloned onto the board when pinned. -->
+    <div class="pin-templates" hidden aria-hidden="true">
+      {products.map((p) => (
+        <div data-pin-template={p.slug} data-name={p.name}>
+          <PinArt art={p.art} color={p.colorway} colorAlt={p.colorwayAlt} title={p.name} />
+        </div>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .board-page { padding-top: var(--sp-5); }
+  .board-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: var(--sp-4);
+    flex-wrap: wrap;
+    margin-bottom: var(--sp-4);
+  }
+  .board-lede { margin-top: var(--sp-3); color: var(--ink-soft); max-width: 48ch; }
+  .board-controls { display: flex; gap: var(--sp-2); }
+  .board-layout {
+    display: grid;
+    grid-template-columns: 1fr 260px;
+    gap: var(--sp-3);
+    align-items: start;
+  }
+  .board-surface {
+    position: relative;
+    min-height: 560px;
+    border: var(--rule-w-bold) solid var(--ink);
+    border-radius: var(--r-md);
+    background-color: #d9b98a;
+    background-image: radial-gradient(rgba(120, 82, 40, 0.35) 1.5px, transparent 1.5px);
+    background-size: 16px 16px;
+    overflow: hidden;
+    touch-action: none;
+  }
+  .board-hint {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: rgba(60, 40, 15, 0.6);
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    text-align: center;
+    pointer-events: none;
+  }
+  :global(.board-pin) {
+    position: absolute;
+    width: 92px;
+    height: 92px;
+    cursor: grab;
+    user-select: none;
+    filter: drop-shadow(0 6px 10px rgba(60, 40, 15, 0.4));
+    touch-action: none;
+  }
+  :global(.board-pin:active) { cursor: grabbing; }
+  :global(.board-pin svg) { width: 100%; height: 100%; pointer-events: none; }
+  :global(.board-pin.is-dragging) { z-index: 50 !important; }
+
+  .board-tray {
+    border: var(--rule-w) solid var(--ink);
+    border-radius: var(--r-md);
+    background: var(--card);
+    padding: var(--sp-3);
+    position: sticky;
+    top: 90px;
+    max-height: 620px;
+    overflow-y: auto;
+  }
+  .tray-title {
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    padding-bottom: var(--sp-2);
+    margin-bottom: var(--sp-2);
+    border-bottom: 1.5px solid var(--ink);
+  }
+  .tray-list { display: flex; flex-direction: column; gap: 0.35rem; }
+  .tray-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.4rem 0.5rem;
+    background: none;
+    border: 1.5px solid transparent;
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    text-align: left;
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+  .tray-item:hover { border-color: var(--ink); background: var(--paper-2); }
+  .tray-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--ink); flex-shrink: 0; }
+  .tray-name { flex: 1; }
+  .tray-plus { color: var(--brand); font-weight: 700; }
+  .board-foot { margin-top: var(--sp-3); font-size: var(--step--1); color: var(--ink-faint); }
+
+  @media (max-width: 820px) {
+    .board-layout { grid-template-columns: 1fr; }
+    .board-tray { position: static; max-height: none; }
+    .tray-list { flex-direction: row; flex-wrap: wrap; }
+    .tray-item { width: auto; }
+    .tray-name { display: none; }
+  }
+</style>
+
+<script>
+  import { track } from '../lib/analytics';
+
+  const STORAGE = 'pinned:board:v1';
+  const board = document.querySelector('[data-board]') as HTMLElement;
+  const hint = document.querySelector('[data-board-hint]') as HTMLElement;
+
+  interface Placed { slug: string; x: number; y: number; rot: number; z: number; }
+  let items: Placed[] = load();
+  let zTop = items.reduce((m, i) => Math.max(m, i.z), 1);
+
+  function load(): Placed[] {
+    try {
+      const raw = localStorage.getItem(STORAGE);
+      const parsed = raw ? JSON.parse(raw) : [];
+      return Array.isArray(parsed) ? parsed : [];
+    } catch { return []; }
+  }
+  function save() {
+    localStorage.setItem(STORAGE, JSON.stringify(items));
+    hint.style.display = items.length ? 'none' : '';
+  }
+
+  function template(slug: string): string {
+    const tpl = document.querySelector(`[data-pin-template="${slug}"]`);
+    return tpl ? tpl.innerHTML : '';
+  }
+  function nameOf(slug: string): string {
+    return (document.querySelector(`[data-pin-template="${slug}"]`) as HTMLElement)?.dataset.name || slug;
+  }
+
+  function renderPin(item: Placed) {
+    const el = document.createElement('div');
+    el.className = 'board-pin';
+    el.dataset.slug = item.slug;
+    el.style.left = item.x + 'px';
+    el.style.top = item.y + 'px';
+    el.style.transform = `rotate(${item.rot}deg)`;
+    el.style.zIndex = String(item.z);
+    el.setAttribute('role', 'img');
+    el.setAttribute('aria-label', nameOf(item.slug) + ', double-tap to remove');
+    el.innerHTML = template(item.slug);
+    makeDraggable(el, item);
+    board.appendChild(el);
+  }
+
+  function clampX(x: number) { return Math.max(0, Math.min(x, board.clientWidth - 92)); }
+  function clampY(y: number) { return Math.max(0, Math.min(y, board.clientHeight - 92)); }
+
+  function addPin(slug: string, atX?: number, atY?: number) {
+    const item: Placed = {
+      slug,
+      x: atX ?? clampX(40 + Math.random() * (board.clientWidth - 160)),
+      y: atY ?? clampY(40 + Math.random() * (board.clientHeight - 160)),
+      rot: Math.round((Math.random() * 16 - 8)),
+      z: ++zTop,
+    };
+    items.push(item);
+    renderPin(item);
+    save();
+    track({ name: 'board_pin', slug });
+  }
+
+  function makeDraggable(el: HTMLElement, item: Placed) {
+    let sx = 0, sy = 0, ox = 0, oy = 0, moved = false;
+    el.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      moved = false;
+      sx = e.clientX; sy = e.clientY; ox = item.x; oy = item.y;
+      item.z = ++zTop; el.style.zIndex = String(item.z);
+      el.classList.add('is-dragging');
+      el.setPointerCapture(e.pointerId);
+    });
+    el.addEventListener('pointermove', (e) => {
+      if (!el.hasPointerCapture(e.pointerId)) return;
+      const dx = e.clientX - sx, dy = e.clientY - sy;
+      if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+      item.x = clampX(ox + dx);
+      item.y = clampY(oy + dy);
+      el.style.left = item.x + 'px';
+      el.style.top = item.y + 'px';
+    });
+    const end = (e: PointerEvent) => {
+      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+      el.classList.remove('is-dragging');
+      if (moved) save();
+    };
+    el.addEventListener('pointerup', end);
+    el.addEventListener('pointercancel', end);
+    el.addEventListener('dblclick', () => removePin(el, item));
+  }
+
+  function removePin(el: HTMLElement, item: Placed) {
+    items = items.filter((i) => i !== item);
+    el.remove();
+    save();
+  }
+
+  // Wire tray
+  document.querySelectorAll('[data-add-pin]').forEach((btn) => {
+    btn.addEventListener('click', () => addPin((btn as HTMLElement).dataset.addPin!));
+  });
+  document.querySelector('[data-board-random]')?.addEventListener('click', () => {
+    const all = Array.from(document.querySelectorAll('[data-add-pin]')) as HTMLElement[];
+    const pick = all[Math.floor(Math.random() * all.length)];
+    if (pick) addPin(pick.dataset.addPin!);
+  });
+  document.querySelector('[data-board-clear]')?.addEventListener('click', () => {
+    items = [];
+    board.querySelectorAll('.board-pin').forEach((p) => p.remove());
+    save();
+  });
+
+  // Initial paint
+  items.forEach(renderPin);
+  save();
+</script>

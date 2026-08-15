@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://archievalmariano.com/pinned-shop/sitemap-index.xml

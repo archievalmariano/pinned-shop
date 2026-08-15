@@ -1,0 +1,198 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProductCard from '../components/ProductCard.astro';
+import CollectionNav from '../components/CollectionNav.astro';
+import { products } from '../data/products';
+import { collections } from '../data/collections';
+
+const sorted = [...products].sort(
+  (a, b) => b.releasedAt.localeCompare(a.releasedAt) || a.name.localeCompare(b.name),
+);
+---
+
+<BaseLayout title="Shop" path="/shop" description="Every Pinned enamel pin: places, things, feelings, clubs, and short limited runs.">
+  <section class="container shop-intro section--tight">
+    <h1 class="display-4 font-serif">All pins</h1>
+    <p class="shop-lede">{products.length} designs across five collections.</p>
+  </section>
+
+  <section class="container">
+    <h2 class="shop-subhead">Shop by collection</h2>
+    <CollectionNav />
+  </section>
+
+  <section class="container section--tight">
+    <div class="shop-controls" data-shop-controls>
+      <div class="filters" role="group" aria-label="Filter by collection">
+        <button type="button" class="filter is-active" data-filter="all">All</button>
+        {collections.map((c) => (
+          <button type="button" class="filter" data-filter={c.slug}>{c.name}</button>
+        ))}
+      </div>
+      <label class="sort">
+        <span class="sr-only">Sort products</span>
+        <select data-sort class="field">
+          <option value="new">Newest first</option>
+          <option value="price-asc">Price: low to high</option>
+          <option value="price-desc">Price: high to low</option>
+          <option value="az">A to Z</option>
+        </select>
+      </label>
+    </div>
+
+    <p class="result-count" data-result-count aria-live="polite"></p>
+
+    <div class="product-grid" data-shop-grid>
+      {sorted.map((p) => (
+        <div
+          class="grid-cell"
+          data-cell
+          data-collection={p.collection}
+          data-price={p.price}
+          data-name={p.name}
+          data-released={p.releasedAt}
+        >
+          <ProductCard product={p} />
+        </div>
+      ))}
+    </div>
+
+    <div class="empty-state" data-empty hidden>
+      <h2>Nothing here yet.</h2>
+      <p>That collection is between drops. Try another, or see everything.</p>
+      <button type="button" class="btn" data-clear-filter>Show all pins</button>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .shop-intro { padding-top: var(--sp-5); }
+  .shop-lede {
+    margin-top: var(--sp-2);
+    font-size: var(--step-1);
+    color: var(--ink-soft);
+  }
+  .shop-subhead {
+    font-size: var(--step-1);
+    font-weight: 600;
+    margin-bottom: var(--sp-3);
+  }
+  .shop-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    padding-bottom: var(--sp-3);
+    margin-bottom: var(--sp-4);
+    border-bottom: 1px solid var(--hair);
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
+  .filter {
+    font-weight: 500;
+    font-size: var(--step--1);
+    padding: 0.4rem 0.85rem;
+    background: transparent;
+    border: 1px solid var(--hair-strong);
+    border-radius: 999px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .filter:hover { border-color: var(--ink); color: var(--ink); }
+  .filter.is-active {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  .sort .field {
+    width: auto;
+    padding-right: 2rem;
+    cursor: pointer;
+  }
+  .result-count {
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    margin-bottom: var(--sp-3);
+  }
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-3);
+  }
+  .grid-cell[hidden] { display: none; }
+  .empty-state {
+    text-align: center;
+    padding: var(--sp-6) 0;
+  }
+  .empty-state h2 { font-size: var(--step-3); margin-bottom: var(--sp-2); }
+  .empty-state p { color: var(--ink-soft); margin-bottom: var(--sp-3); }
+  @media (max-width: 1000px) { .product-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 640px) { .product-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 400px) { .product-grid { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { link } from '../lib/link';
+  const grid = document.querySelector('[data-shop-grid]') as HTMLElement;
+  const cells = Array.from(document.querySelectorAll('[data-cell]')) as HTMLElement[];
+  const filters = Array.from(document.querySelectorAll('[data-filter]')) as HTMLElement[];
+  const sortSel = document.querySelector('[data-sort]') as HTMLSelectElement;
+  const countEl = document.querySelector('[data-result-count]') as HTMLElement;
+  const emptyEl = document.querySelector('[data-empty]') as HTMLElement;
+  let activeFilter = 'all';
+
+  function apply() {
+    let visible = 0;
+    cells.forEach((cell) => {
+      const match = activeFilter === 'all' || cell.dataset.collection === activeFilter;
+      cell.hidden = !match;
+      if (match) visible++;
+    });
+    countEl.textContent = `${visible} ${visible === 1 ? 'pin' : 'pins'}${
+      activeFilter === 'all' ? '' : ' in this collection'
+    }`;
+    emptyEl.hidden = visible !== 0;
+    grid.hidden = visible === 0;
+  }
+
+  function sort() {
+    const mode = sortSel.value;
+    const ordered = [...cells].sort((a, b) => {
+      switch (mode) {
+        case 'price-asc': return Number(a.dataset.price) - Number(b.dataset.price);
+        case 'price-desc': return Number(b.dataset.price) - Number(a.dataset.price);
+        case 'az': return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+        default: return (b.dataset.released || '').localeCompare(a.dataset.released || '');
+      }
+    });
+    ordered.forEach((c) => grid.appendChild(c));
+  }
+
+  filters.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      filters.forEach((b) => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      activeFilter = btn.dataset.filter!;
+      apply();
+      history.replaceState(null, '', activeFilter === 'all' ? link('/shop') : `${link('/shop')}?c=${activeFilter}`);
+    });
+  });
+  sortSel.addEventListener('change', sort);
+  document.querySelector('[data-clear-filter]')?.addEventListener('click', () => {
+    (filters.find((f) => f.dataset.filter === 'all') as HTMLElement)?.click();
+  });
+
+  // Honour ?c=collection on load.
+  const params = new URLSearchParams(location.search);
+  const preset = params.get('c');
+  if (preset && filters.some((f) => f.dataset.filter === preset)) {
+    (filters.find((f) => f.dataset.filter === preset) as HTMLElement).click();
+  } else {
+    apply();
+  }
+</script>

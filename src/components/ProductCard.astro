@@ -1,0 +1,202 @@
+---
+import type { Product } from '../data/types';
+import { formatPeso } from '../lib/format';
+import { link } from '../lib/link';
+import PinArt from './PinArt.astro';
+
+interface Props {
+  product: Product;
+  /** Show the small "quick add" affordance. */
+  quickAdd?: boolean;
+}
+const { product, quickAdd = true } = Astro.props;
+const soldOut = product.status === 'sold-out';
+const href = link(`/products/${product.slug}`);
+const showBadge = product.badge && !soldOut;
+---
+
+<article class="card">
+  <a href={href} class="card-media" aria-label={product.name} style={`--enamel:${product.colorway}`}>
+    <PinArt art={product.art} color={product.colorway} colorAlt={product.colorwayAlt} title={product.name} class="card-pin" />
+    {showBadge && <span class:list={['chip', 'card-badge', { 'chip--limited': product.badge === 'Limited' }]}>{product.badge}</span>}
+    {soldOut && <span class="chip chip--sold card-badge">Sold out</span>}
+  </a>
+
+  <button
+    type="button"
+    class="card-save"
+    data-save={product.slug}
+    aria-pressed="false"
+    aria-label={`Save ${product.name}`}
+    title="Save"
+  >
+    <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 21s-7-4.6-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 3.5C19 16.4 12 21 12 21z" />
+    </svg>
+  </button>
+
+  <div class="card-body">
+    <div class="card-line">
+      <h3 class="card-name"><a href={href}>{product.name}</a></h3>
+      <span class="card-price">{formatPeso(product.price)}</span>
+    </div>
+    <p class="card-tagline">{product.tagline}</p>
+    {quickAdd && !soldOut && (
+      <button type="button" class="card-add" data-quick-add={product.slug}>Add to cart</button>
+    )}
+  </div>
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--card);
+    border: 1px solid var(--hair);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  }
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--hair-strong);
+  }
+  .card-media {
+    position: relative;
+    display: grid;
+    place-items: center;
+    padding: var(--sp-4);
+    aspect-ratio: 1 / 1;
+    background: color-mix(in srgb, var(--enamel) 9%, var(--card));
+  }
+  .card-pin {
+    width: 72%;
+    transition: transform 0.2s ease;
+  }
+  .card:hover .card-pin {
+    transform: scale(1.03);
+  }
+  .card-badge {
+    position: absolute;
+    top: var(--sp-2);
+    left: var(--sp-2);
+  }
+  .card-save {
+    position: absolute;
+    top: var(--sp-2);
+    right: var(--sp-2);
+    z-index: 2;
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--card) 78%, transparent);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--ink-soft);
+    transition: background 0.15s, color 0.15s;
+  }
+  .card-save:hover {
+    background: var(--card);
+    color: var(--ink);
+  }
+  .card-save[aria-pressed='true'] {
+    color: var(--brand);
+  }
+  .card-save[aria-pressed='true'] svg {
+    fill: currentColor;
+  }
+  .card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: var(--sp-3);
+    flex: 1;
+  }
+  .card-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--sp-2);
+  }
+  .card-name {
+    font-size: var(--step-0);
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  .card-name a:hover {
+    color: var(--brand-ink);
+  }
+  .card-price {
+    font-size: var(--step-0);
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+  .card-tagline {
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+    line-height: 1.4;
+    flex: 1;
+  }
+  .card-add {
+    margin-top: var(--sp-3);
+    align-self: stretch;
+    font-weight: 600;
+    font-size: var(--step--1);
+    padding: 0.5rem 0.8rem;
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--hair-strong);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+    opacity: 0;
+    transition: background 0.15s, color 0.15s, opacity 0.15s, border-color 0.15s;
+  }
+  .card:hover .card-add,
+  .card:focus-within .card-add {
+    opacity: 1;
+  }
+  .card-add:hover {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+  /* Touch devices can't hover — keep the add button visible. */
+  @media (hover: none) {
+    .card-add { opacity: 1; }
+  }
+</style>
+
+<script>
+  import { addToCart } from '../lib/cart';
+  import { productBySlug } from '../data/products';
+  import { toggleSaved, isSaved, onSavedChange } from '../lib/wishlist';
+
+  document.querySelectorAll('[data-quick-add]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const slug = (btn as HTMLElement).dataset.quickAdd!;
+      const product = productBySlug[slug];
+      const defaults: Record<string, string> = {};
+      for (const g of product?.variants ?? []) defaults[g.id] = g.choices[0].id;
+      addToCart(slug, defaults, 1);
+      window.dispatchEvent(new CustomEvent('pinned:cart:open'));
+    });
+  });
+
+  function paintSaved() {
+    document.querySelectorAll('[data-save]').forEach((btn) => {
+      const slug = (btn as HTMLElement).dataset.save!;
+      btn.setAttribute('aria-pressed', String(isSaved(slug)));
+    });
+  }
+  document.querySelectorAll('[data-save]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      toggleSaved((btn as HTMLElement).dataset.save!);
+    });
+  });
+  paintSaved();
+  onSavedChange(paintSaved);
+</script>

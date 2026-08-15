@@ -1,0 +1,121 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import Newsletter from '../../components/Newsletter.astro';
+import { collections } from '../../data/collections';
+import { productsInCollection } from '../../data/products';
+import { link } from '../../lib/link';
+
+export function getStaticPaths() {
+  return collections.map((c) => ({ params: { slug: c.slug }, props: { collection: c } }));
+}
+
+const { collection } = Astro.props;
+const items = productsInCollection(collection.slug);
+const others = collections.filter((c) => c.slug !== collection.slug);
+---
+
+<BaseLayout
+  title={collection.name}
+  path={`/collections/${collection.slug}`}
+  description={collection.intro}
+>
+  <header class="coll-header" style={`--accent:${collection.accent}`}>
+    <div class="container coll-header-inner">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href={link('/shop')}>Shop</a> <span aria-hidden="true">/</span> <span>{collection.name}</span>
+      </nav>
+      <h1 class="display-4 coll-title">{collection.name}</h1>
+      <p class="coll-intro">{collection.intro}</p>
+      <p class="coll-count">{items.length} {items.length === 1 ? 'pin' : 'pins'}</p>
+    </div>
+  </header>
+
+  <section class="container section--tight">
+    <div class="product-grid">
+      {items.map((p) => <ProductCard product={p} />)}
+    </div>
+  </section>
+
+  <section class="container section--tight">
+    <h2 class="display-3 other-heading">Other collections</h2>
+    <ul class="other-list">
+      {others.map((c) => (
+        <li>
+          <a href={link(`/collections/${c.slug}`)} class="other-tile" style={`--accent:${c.accent}`}>
+            <span class="other-name">{c.name}</span>
+            <span class="other-blurb">{c.blurb}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="container section--tight">
+    <Newsletter source={`collection-${collection.slug}`} />
+  </section>
+</BaseLayout>
+
+<style>
+  .coll-header {
+    border-bottom: var(--rule-w-bold) solid var(--ink);
+    background: color-mix(in srgb, var(--accent) 12%, var(--paper));
+  }
+  .coll-header-inner {
+    padding-block: var(--sp-6) var(--sp-5);
+  }
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    margin-bottom: var(--sp-3);
+  }
+  .crumbs a { text-decoration: underline; text-underline-offset: 3px; }
+  .coll-title {
+    border-left: 8px solid var(--accent);
+    padding-left: var(--sp-3);
+  }
+  .coll-intro {
+    margin-top: var(--sp-3);
+    font-size: var(--step-1);
+    max-width: 52ch;
+    color: var(--ink-soft);
+  }
+  .coll-count {
+    margin-top: var(--sp-3);
+    font-weight: 700;
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-3);
+  }
+  .other-heading { margin-bottom: var(--sp-3); }
+  .other-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-3);
+  }
+  .other-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: var(--sp-3);
+    border: var(--rule-w) solid var(--ink);
+    border-radius: var(--r-md);
+    border-top: 6px solid var(--accent);
+    background: var(--card);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .other-tile:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .other-name { font-family: var(--font-display); font-size: var(--step-1); }
+  .other-blurb { font-size: var(--step--1); color: var(--ink-soft); }
+  @media (max-width: 1000px) {
+    .product-grid, .other-list { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 460px) {
+    .product-grid { grid-template-columns: 1fr; }
+  }
+</style>

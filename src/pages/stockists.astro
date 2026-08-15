@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { stockists } from '../data/stockists';
+
+const groups: { key: string; title: string; note: string }[] = [
+  { key: 'marketplace', title: 'Online', note: 'The full catalogue, nationwide shipping.' },
+  { key: 'retail', title: 'In stores', note: 'A rotating selection around the metro.' },
+  { key: 'popup', title: 'Pop-ups', note: 'Where we show up in person with the singles.' },
+];
+---
+
+<BaseLayout title="Stockists" path="/stockists" description="Find Pinned online or in selected stores around Manila.">
+  <header class="container section--tight st-header">
+    <p class="eyebrow">Stockists</p>
+    <h1 class="display-4 font-serif">Find Pinned online or in selected stores.</h1>
+    <p class="st-lede">
+      Buy direct here, or through the stores below. Pinned is a fictional brand, so these are
+      illustrative categories and the marketplace links are placeholders.
+    </p>
+  </header>
+
+  <section class="container section--tight">
+    {groups.map((g) => {
+      const items = stockists.filter((s) => s.kind === g.key);
+      return (
+        <div class="st-group">
+          <div class="st-group-head">
+            <h2 class="display-3">{g.title}</h2>
+            <p>{g.note}</p>
+          </div>
+          <ul class="st-list">
+            {items.map((s) => (
+              <li class="st-card">
+                <div class="st-card-top">
+                  <h3 class="st-name">{s.name}</h3>
+                  {s.kind === 'marketplace' && s.url && (
+                    <a class="st-visit" href={s.url} data-marketplace={s.name} rel="nofollow noopener">Visit ↗</a>
+                  )}
+                </div>
+                <p class="st-loc">{s.location}</p>
+                <p class="st-note">{s.note}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      );
+    })}
+  </section>
+</BaseLayout>
+
+<style>
+  .st-header { padding-top: var(--sp-5); }
+  .st-lede { margin-top: var(--sp-3); font-size: var(--step-1); color: var(--ink-soft); max-width: 54ch; }
+  .st-group { margin-bottom: var(--sp-6); }
+  .st-group-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--sp-3);
+    flex-wrap: wrap;
+    padding-bottom: var(--sp-2);
+    margin-bottom: var(--sp-4);
+    border-bottom: var(--rule-w) solid var(--ink);
+  }
+  .st-group-head p { color: var(--ink-soft); font-size: var(--step--1); }
+  .st-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-3);
+  }
+  .st-card {
+    padding: var(--sp-4);
+    border: var(--rule-w) solid var(--ink);
+    border-radius: var(--r-md);
+    background: var(--card);
+  }
+  .st-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--sp-2);
+  }
+  .st-name { font-size: var(--step-2); }
+  .st-visit {
+    font-weight: 600;
+    font-size: var(--step--1);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+  }
+  .st-visit:hover { color: var(--brand-ink); }
+  .st-loc {
+    margin-top: var(--sp-2);
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .st-note { margin-top: 0.3rem; color: var(--ink-soft); font-size: var(--step--1); }
+  @media (max-width: 860px) { .st-list { grid-template-columns: 1fr; } }
+</style>
+
+<script>
+  import { track } from '../lib/analytics';
+  document.querySelectorAll('[data-marketplace]').forEach((el) => {
+    el.addEventListener('click', () =>
+      track({ name: 'marketplace_click', marketplace: (el as HTMLElement).dataset.marketplace || 'unknown' }),
+    );
+  });
+</script>

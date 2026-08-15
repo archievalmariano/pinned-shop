@@ -1,0 +1,79 @@
+---
+import { stockists } from '../data/stockists';
+interface Props {
+  slug?: string;
+  compact?: boolean;
+}
+const { slug, compact = false } = Astro.props;
+const marketplaces = stockists.filter((s) => s.kind === 'marketplace');
+---
+
+<div class:list={['mkt', { 'mkt--compact': compact }]}>
+  <p class="mkt-label">{compact ? 'Also on' : 'Also available on'}</p>
+  <ul class="mkt-list">
+    {marketplaces.map((m) => (
+      <li>
+        <a
+          class="mkt-btn"
+          href={m.url}
+          data-marketplace={m.name}
+          data-slug={slug}
+          rel="nofollow noopener"
+        >
+          {m.name}
+          <span class="mkt-arrow" aria-hidden="true">↗</span>
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<style>
+  .mkt-label {
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--ink-faint);
+    margin-bottom: var(--sp-2);
+  }
+  .mkt-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
+  .mkt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 500;
+    padding: 0.55rem 1rem;
+    background: var(--card);
+    border: 1px solid var(--hair-strong);
+    border-radius: var(--r-sm);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .mkt-btn:hover {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .mkt-arrow {
+    font-size: 0.85em;
+  }
+  .mkt--compact .mkt-btn {
+    padding: 0.4rem 0.7rem;
+    font-size: var(--step--1);
+  }
+</style>
+
+<script>
+  import { track } from '../lib/analytics';
+  document.querySelectorAll('[data-marketplace]').forEach((el) => {
+    el.addEventListener('click', () => {
+      const t = el as HTMLElement;
+      track({
+        name: 'marketplace_click',
+        marketplace: t.dataset.marketplace || 'unknown',
+        slug: t.dataset.slug || undefined,
+      });
+    });
+  });
+</script>

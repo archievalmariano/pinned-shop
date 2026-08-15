@@ -1,0 +1,316 @@
+---
+// Slide-in cart drawer. Contents render client-side from the cart lib.
+import { link } from '../lib/link';
+import PinArtTemplates from './PinArtTemplates.astro';
+---
+
+<PinArtTemplates />
+
+<div class="cart-drawer" data-cart-drawer hidden>
+  <div class="cart-backdrop" data-cart-close></div>
+  <aside
+    class="cart-panel"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Your cart"
+    tabindex="-1"
+  >
+    <header class="cart-head">
+      <h2 class="cart-title">Your cart</h2>
+      <button type="button" class="cart-x" data-cart-close aria-label="Close cart">✕</button>
+    </header>
+
+    <div class="cart-body" data-cart-body>
+      <!-- rendered client-side -->
+    </div>
+
+    <footer class="cart-foot" data-cart-foot hidden>
+      <div class="cart-subtotal">
+        <span>Subtotal</span>
+        <span data-cart-subtotal>₱0</span>
+      </div>
+      <p class="cart-note">Shipping and the usual regrets calculated at checkout.</p>
+      <a href={link('/checkout')} class="btn btn--block" data-cart-checkout>Checkout (demo)</a>
+      <button type="button" class="cart-continue" data-cart-close>Keep looking</button>
+    </footer>
+  </aside>
+</div>
+
+<style>
+  .cart-drawer {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+  }
+  .cart-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(23, 22, 20, 0.5);
+    animation: fade 0.2s ease;
+  }
+  .cart-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: min(420px, 100%);
+    background: var(--paper);
+    border-left: var(--rule-w-bold) solid var(--ink);
+    display: flex;
+    flex-direction: column;
+    animation: slide 0.24s ease;
+  }
+  @keyframes slide {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  @keyframes fade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .cart-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: var(--rule-w) solid var(--ink);
+  }
+  .cart-title {
+    font-size: var(--step-2);
+  }
+  .cart-x {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0.3rem;
+    line-height: 1;
+  }
+  .cart-x:hover { color: var(--brand-ink); }
+  .cart-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--sp-3) var(--sp-4);
+  }
+  .cart-foot {
+    border-top: var(--rule-w) solid var(--ink);
+    padding: var(--sp-3) var(--sp-4) var(--sp-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    background: var(--paper-2);
+  }
+  .cart-subtotal {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+  }
+  .cart-note {
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+  }
+  .cart-continue {
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    font-size: var(--step--1);
+    padding: 0.2rem;
+  }
+
+  /* line items */
+  :global(.cart-line) {
+    display: grid;
+    grid-template-columns: 54px 1fr auto;
+    gap: var(--sp-3);
+    padding: var(--sp-3) 0;
+    border-bottom: 1.5px solid var(--paper-3);
+  }
+  :global(.cart-swatch) {
+    width: 54px;
+    height: 54px;
+    border-radius: var(--r-sm);
+    background: color-mix(in srgb, var(--enamel, var(--paper-2)) 12%, var(--card));
+    display: grid;
+    place-items: center;
+    padding: 5px;
+  }
+  :global(.cart-swatch svg) {
+    width: 100%;
+    height: auto;
+  }
+  :global(.cart-line-name) {
+    font-weight: 600;
+    line-height: 1.2;
+  }
+  :global(.cart-line-variant) {
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+  :global(.cart-qty) {
+    display: inline-flex;
+    align-items: center;
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r-sm);
+    margin-top: 0.4rem;
+    width: max-content;
+  }
+  :global(.cart-qty button) {
+    width: 26px;
+    height: 26px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1;
+  }
+  :global(.cart-qty button:hover) { color: var(--brand-ink); }
+  :global(.cart-qty span) {
+    min-width: 26px;
+    text-align: center;
+    font-size: var(--step--1);
+    font-weight: 600;
+  }
+  :global(.cart-line-right) {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
+  :global(.cart-line-price) { font-weight: 600; }
+  :global(.cart-remove) {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: var(--step--1);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    color: var(--ink-soft);
+  }
+  :global(.cart-remove:hover) { color: var(--brand-ink); }
+  :global(.cart-empty) {
+    padding: var(--sp-5) 0;
+    text-align: center;
+  }
+  :global(.cart-empty h3) {
+    font-size: var(--step-2);
+    margin-bottom: var(--sp-2);
+  }
+  :global(.cart-empty p) {
+    color: var(--ink-soft);
+    max-width: 26ch;
+    margin: 0 auto var(--sp-3);
+  }
+</style>
+
+<script>
+  import { getCart, setQty, removeLine, onCartChange } from '../lib/cart';
+  import { formatPeso } from '../lib/format';
+  import { link } from '../lib/link';
+
+  // Clone the real PinArt SVG for a product from its hidden <template>.
+  function pinSvg(slug: string): string {
+    const t = document.querySelector(`[data-pin-template="${slug}"]`);
+    return t ? t.innerHTML : '';
+  }
+
+  const drawer = document.querySelector('[data-cart-drawer]') as HTMLElement;
+  const panel = drawer?.querySelector('.cart-panel') as HTMLElement;
+  const body = drawer?.querySelector('[data-cart-body]') as HTMLElement;
+  const foot = drawer?.querySelector('[data-cart-foot]') as HTMLElement;
+  const subtotalEl = drawer?.querySelector('[data-cart-subtotal]') as HTMLElement;
+  let lastFocus: HTMLElement | null = null;
+
+  function render() {
+    const { lines, subtotal, count } = getCart();
+    if (!body) return;
+    if (count === 0) {
+      body.innerHTML = `
+        <div class="cart-empty">
+          <h3>Nothing pinned yet.</h3>
+          <p>An empty cart is also a kind of collection. A restrained one.</p>
+          <a href="${link('/shop')}" class="btn" data-cart-close>Browse the shop</a>
+        </div>`;
+      foot.hidden = true;
+      bindCloseButtons();
+      return;
+    }
+    foot.hidden = false;
+    subtotalEl.textContent = formatPeso(subtotal);
+    body.innerHTML = lines
+      .map(
+        (l) => `
+      <div class="cart-line">
+        <div class="cart-swatch" style="--enamel:${l.product.colorway}">${pinSvg(l.slug)}</div>
+        <div>
+          <div class="cart-line-name">${l.product.name}</div>
+          ${l.variantLabel ? `<div class="cart-line-variant">${l.variantLabel}</div>` : ''}
+          <div class="cart-qty" data-id="${l.id}">
+            <button type="button" data-dec aria-label="Decrease quantity">–</button>
+            <span>${l.qty}</span>
+            <button type="button" data-inc aria-label="Increase quantity">+</button>
+          </div>
+        </div>
+        <div class="cart-line-right">
+          <div class="cart-line-price">${formatPeso(l.lineTotal)}</div>
+          <button type="button" class="cart-remove" data-remove="${l.id}">Remove</button>
+        </div>
+      </div>`,
+      )
+      .join('');
+    bindLineButtons();
+  }
+
+  function bindLineButtons() {
+    body.querySelectorAll('.cart-qty').forEach((q) => {
+      const id = (q as HTMLElement).dataset.id!;
+      const current = getCart().lines.find((l) => l.id === id);
+      q.querySelector('[data-inc]')?.addEventListener('click', () =>
+        setQty(id, (current?.qty ?? 0) + 1),
+      );
+      q.querySelector('[data-dec]')?.addEventListener('click', () =>
+        setQty(id, (current?.qty ?? 0) - 1),
+      );
+    });
+    body.querySelectorAll('[data-remove]').forEach((btn) => {
+      btn.addEventListener('click', () =>
+        removeLine((btn as HTMLElement).dataset.remove!),
+      );
+    });
+  }
+
+  function bindCloseButtons() {
+    drawer.querySelectorAll('[data-cart-close]').forEach((el) => {
+      el.addEventListener('click', close);
+    });
+  }
+
+  function open() {
+    lastFocus = document.activeElement as HTMLElement;
+    render();
+    drawer.hidden = false;
+    document.body.style.overflow = 'hidden';
+    panel?.focus();
+  }
+  function close() {
+    drawer.hidden = true;
+    document.body.style.overflow = '';
+    lastFocus?.focus();
+  }
+
+  window.addEventListener('pinned:cart:open', open);
+  drawer?.querySelectorAll('[data-cart-close]').forEach((el) =>
+    el.addEventListener('click', close),
+  );
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !drawer.hidden) close();
+  });
+  onCartChange(() => {
+    if (!drawer.hidden) render();
+  });
+</script>

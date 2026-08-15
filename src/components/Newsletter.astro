@@ -1,0 +1,93 @@
+---
+interface Props {
+  source?: string;
+  variant?: 'panel' | 'inline';
+}
+const { source = 'footer', variant = 'panel' } = Astro.props;
+---
+
+<section class:list={['news', `news--${variant}`]} data-news-source={source} aria-labelledby="news-title">
+  <div class="news-copy">
+    <h2 id="news-title" class="news-title">Get new arrivals first</h2>
+    <p class="news-sub">Occasional emails: new pins, restocks, and the odd Pinboard piece.</p>
+  </div>
+  <form class="news-form" data-news-form novalidate>
+    <label class="sr-only" for={`news-${source}`}>Email address</label>
+    <input
+      class="field news-input"
+      id={`news-${source}`}
+      type="email"
+      name="email"
+      required
+      placeholder="you@somewhere.ph"
+      autocomplete="email"
+    />
+    <button type="submit" class="btn">Sign up</button>
+    <p class="news-msg" data-news-msg role="status" aria-live="polite"></p>
+  </form>
+</section>
+
+<style>
+  .news {
+    border: 1px solid var(--hair);
+    border-radius: var(--r-md);
+    background: var(--card);
+    padding: var(--sp-5);
+    display: grid;
+    gap: var(--sp-4);
+  }
+  .news--panel {
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+  }
+  .news-title {
+    font-size: var(--step-2);
+  }
+  .news-sub {
+    margin-top: var(--sp-2);
+    color: var(--ink-soft);
+    max-width: 42ch;
+  }
+  .news-form {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--sp-2);
+  }
+  .news-msg {
+    grid-column: 1 / -1;
+    font-size: var(--step--1);
+    min-height: 1.2em;
+    color: var(--ink-soft);
+    font-weight: 500;
+  }
+  @media (max-width: 760px) {
+    .news--panel {
+      grid-template-columns: 1fr;
+    }
+    .news-form {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  import { track } from '../lib/analytics';
+  document.querySelectorAll('[data-news-form]').forEach((form) => {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const f = form as HTMLFormElement;
+      const input = f.querySelector('input[type=email]') as HTMLInputElement;
+      const msg = f.querySelector('[data-news-msg]') as HTMLElement;
+      const source =
+        (f.closest('[data-news-source]') as HTMLElement)?.dataset.newsSource || 'unknown';
+      if (!input.value || !input.checkValidity()) {
+        msg.textContent = 'Please enter a valid email address.';
+        input.focus();
+        return;
+      }
+      track({ name: 'newsletter_signup', source });
+      msg.textContent = 'Thanks, you\'re on the list. (Demo only; nothing was sent.)';
+      f.reset();
+    });
+  });
+</script>

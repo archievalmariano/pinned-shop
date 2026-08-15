@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#f4efe4"/>
+  <g fill="#e6ddc9">
+    <circle cx="60" cy="60" r="2.5"/><circle cx="140" cy="60" r="2.5"/><circle cx="220" cy="60" r="2.5"/>
+  </g>
+  <rect x="30" y="30" width="1140" height="570" fill="none" stroke="#171614" stroke-width="4"/>
+  <circle cx="880" cy="315" r="150" fill="#c9a24b"/>
+  <circle cx="880" cy="315" r="136" fill="#e4472b"/>
+  <circle cx="835" cy="270" r="34" fill="#ffffff" opacity="0.16"/>
+  <g transform="translate(820,255)" stroke="#171614" stroke-width="7" stroke-linejoin="round" fill="#f4b32c">
+    <rect x="0" y="60" width="120" height="46" rx="9"/>
+    <path d="M14 60 q46 -26 92 0"/>
+    <rect x="16" y="52" width="88" height="15" rx="4" fill="#faf7f0"/>
+    <circle cx="28" cy="112" r="13" fill="#171614"/>
+    <circle cx="92" cy="112" r="13" fill="#171614"/>
+  </g>
+  <text x="90" y="250" font-family="Georgia, serif" font-size="128" font-weight="600" fill="#171614">Pinned</text>
+  <text x="94" y="320" font-family="Georgia, serif" font-style="italic" font-size="44" fill="#514c42">Small things worth keeping.</text>
+  <text x="94" y="560" font-family="'Helvetica Neue', Arial, sans-serif" font-size="26" letter-spacing="3" fill="#514c42">ENAMEL PINS · MANILA · PINNED.COM.PH</text>
+</svg>

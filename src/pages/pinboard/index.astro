@@ -1,0 +1,124 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Newsletter from '../../components/Newsletter.astro';
+import { formatDate } from '../../lib/format';
+import { link } from '../../lib/link';
+
+const articles = (await getCollection('pinboard', ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+const [lead, ...rest] = articles;
+---
+
+<BaseLayout
+  title="Pinboard"
+  path="/pinboard"
+  description="The Pinboard: notes on collecting, objects, souvenirs, and the reasons people keep them."
+>
+  <header class="container pb-header section--tight">
+    <p class="eyebrow">Pinboard</p>
+    <h1 class="display-4">Notes on the things people keep.</h1>
+    <p class="pb-lede">
+      Occasional writing on collecting, objects, souvenirs, and the small habits that come with them.
+    </p>
+  </header>
+
+  {lead && (
+    <section class="container">
+      <a href={link(`/pinboard/${lead.id}`)} class="pb-lead" style={`--accent:${lead.data.accent}`}>
+        <div class="pb-lead-body">
+          <span class="pb-cat">{lead.data.category}</span>
+          <h2 class="pb-lead-title">{lead.data.title}</h2>
+          <p class="pb-lead-dek">{lead.data.dek}</p>
+          <span class="pb-meta">{formatDate(lead.data.date.toISOString())} · {lead.data.readingMinutes} min · {lead.data.author}</span>
+        </div>
+        <div class="pb-lead-mark" aria-hidden="true"><span></span></div>
+      </a>
+    </section>
+  )}
+
+  <section class="container section--tight">
+    <div class="pb-list">
+      {rest.map((a) => (
+        <a href={link(`/pinboard/${a.id}`)} class="pb-item" style={`--accent:${a.data.accent}`}>
+          <span class="pb-cat">{a.data.category}</span>
+          <h3 class="pb-item-title">{a.data.title}</h3>
+          <p class="pb-item-dek">{a.data.dek}</p>
+          <span class="pb-meta">{formatDate(a.data.date.toISOString())} · {a.data.readingMinutes} min</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="container section--tight">
+    <Newsletter source="pinboard" />
+  </section>
+</BaseLayout>
+
+<style>
+  .pb-header { padding-top: var(--sp-5); }
+  .pb-lede {
+    margin-top: var(--sp-3);
+    font-size: var(--step-1);
+    color: var(--ink-soft);
+    max-width: 54ch;
+  }
+  .pb-lead {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    border: var(--rule-w-bold) solid var(--ink);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: var(--card);
+    transition: box-shadow 0.15s, transform 0.15s;
+  }
+  .pb-lead:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .pb-lead-body { padding: var(--sp-5); }
+  .pb-lead-title { font-size: var(--step-4); line-height: 1; margin: var(--sp-2) 0; }
+  .pb-lead-dek { font-size: var(--step-1); color: var(--ink-soft); margin-bottom: var(--sp-3); max-width: 40ch; }
+  .pb-lead-mark {
+    background: color-mix(in srgb, var(--accent) 20%, var(--paper));
+    border-left: var(--rule-w) solid var(--ink);
+    display: grid;
+    place-items: center;
+  }
+  .pb-lead-mark span {
+    width: 90px; height: 90px; border-radius: 50%;
+    background: var(--accent);
+    border: 3px solid var(--ink);
+    box-shadow: 0 6px 16px rgba(27,26,23,0.14);
+  }
+  .pb-cat {
+    font-size: var(--step--1);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+  }
+  .pb-meta { font-size: var(--step--1); color: var(--ink-faint); }
+  .pb-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--sp-3);
+  }
+  .pb-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: var(--sp-4);
+    border: var(--rule-w) solid var(--ink);
+    border-radius: var(--r-md);
+    border-left: 6px solid var(--accent);
+    background: var(--card);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .pb-item:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+  .pb-item-title { font-size: var(--step-2); line-height: 1.05; }
+  .pb-item-dek { color: var(--ink-soft); flex: 1; }
+  @media (max-width: 760px) {
+    .pb-lead { grid-template-columns: 1fr; }
+    .pb-lead-mark { display: none; }
+    .pb-list { grid-template-columns: 1fr; }
+  }
+</style>

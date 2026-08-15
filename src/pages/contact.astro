@@ -1,0 +1,115 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { site } from '../data/site';
+---
+
+<BaseLayout title="Contact" path="/contact" description="Get in touch with Pinned: stockist enquiries, lost pins, and general correspondence.">
+  <div class="container section--tight contact">
+    <div class="contact-grid">
+      <div class="contact-copy">
+        <p class="eyebrow">Contact</p>
+        <h1 class="display-4">Say something. We'll almost certainly reply.</h1>
+        <p class="contact-lede">
+          Stockist enquiries, wholesale, a pin that arrived with a bent post, or just a note: all
+          welcome. This form is a demo and doesn't send, but here's where a real one would live.
+        </p>
+        <ul class="contact-details">
+          <li><span class="cd-label">Email</span><a href={`mailto:${site.email}`} class="link-underline">{site.email}</a></li>
+          <li><span class="cd-label">Instagram</span><span>@{site.instagram}</span></li>
+          <li><span class="cd-label">Studio</span><span>{site.location}</span></li>
+        </ul>
+      </div>
+
+      <form class="contact-form" data-contact-form novalidate>
+        <div class="cf-row">
+          <div>
+            <label class="form-label" for="cf-name">Your name</label>
+            <input class="field" id="cf-name" name="name" required autocomplete="name" />
+          </div>
+          <div>
+            <label class="form-label" for="cf-email">Email</label>
+            <input class="field" id="cf-email" name="email" type="email" required autocomplete="email" />
+          </div>
+        </div>
+        <div>
+          <label class="form-label" for="cf-topic">Topic</label>
+          <select class="field" id="cf-topic" name="topic">
+            <option>General</option>
+            <option>Stockist / wholesale</option>
+            <option>A problem with an order</option>
+            <option>The Limited waitlist</option>
+            <option>Something else entirely</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" for="cf-message">Message</label>
+          <textarea class="field" id="cf-message" name="message" rows="5" required></textarea>
+        </div>
+        <button type="submit" class="btn">Send (demo)</button>
+        <p class="cf-msg" data-contact-msg role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .contact { padding-top: var(--sp-5); }
+  .contact-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: var(--sp-5);
+    align-items: start;
+  }
+  .contact-lede { margin-top: var(--sp-3); color: var(--ink-soft); font-size: var(--step-1); max-width: 40ch; }
+  .contact-details {
+    margin-top: var(--sp-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+  }
+  .contact-details li {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    padding: var(--sp-2) 0;
+    border-bottom: 1.5px solid var(--paper-3);
+  }
+  .cd-label {
+    font-size: var(--step--1);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-soft);
+  }
+  .contact-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    padding: var(--sp-4);
+    border: var(--rule-w-bold) solid var(--ink);
+    border-radius: var(--r-md);
+    background: var(--card);
+  }
+  .cf-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+  textarea.field { resize: vertical; }
+  .cf-msg { font-size: var(--step--1); font-weight: 600; min-height: 1.2em; color: var(--green); }
+  @media (max-width: 800px) {
+    .contact-grid { grid-template-columns: 1fr; }
+    .cf-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  const form = document.querySelector('[data-contact-form]') as HTMLFormElement | null;
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const msg = form.querySelector('[data-contact-msg]') as HTMLElement;
+    if (!form.checkValidity()) {
+      msg.style.color = 'var(--brand-ink)';
+      msg.textContent = 'A couple of fields need filling in first.';
+      return;
+    }
+    msg.style.color = 'var(--green)';
+    msg.textContent = 'Got it. Well, we would have. This is a demo, so nothing was sent.';
+    form.reset();
+  });
+</script>

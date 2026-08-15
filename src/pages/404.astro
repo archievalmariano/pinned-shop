@@ -1,0 +1,46 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { products } from '../data/products';
+import { link } from '../lib/link';
+const wander = products[Math.floor(Math.random() * products.length)];
+---
+
+<BaseLayout title="Not found" path="/404" description="This page has gone missing.">
+  <div class="container nf">
+    <div class="nf-mark" aria-hidden="true"><span></span></div>
+    <p class="eyebrow">404 · pined for, not found</p>
+    <h1 class="display-4">This one didn't stay pinned.</h1>
+    <p class="nf-copy">
+      The page you're after has come loose and fallen behind the desk. It happens. Small things go
+      missing; that's rather the whole theme here.
+    </p>
+    <div class="nf-actions">
+      <a href={link('/')} class="btn">Back to the shop</a>
+      <a href={link(`/products/${wander.slug}`)} class="btn btn--ghost">Or look at "{wander.name}"</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .nf {
+    text-align: center;
+    padding-block: var(--sp-7);
+    max-width: 620px;
+  }
+  .nf-mark { display: grid; place-items: center; margin-bottom: var(--sp-4); }
+  .nf-mark span {
+    width: 84px; height: 84px; border-radius: 50%;
+    background: var(--brand); border: 3px solid var(--ink);
+    box-shadow: 0 6px 16px rgba(27,26,23,0.14);
+    position: relative;
+  }
+  .nf-mark span::after {
+    content: '';
+    position: absolute; left: 50%; bottom: -22px;
+    width: 3px; height: 22px; background: var(--ink);
+    transform: translateX(-50%);
+  }
+  .nf { margin-inline: auto; }
+  .nf-copy { margin-top: var(--sp-3); color: var(--ink-soft); font-size: var(--step-1); }
+  .nf-actions { display: flex; gap: var(--sp-2); justify-content: center; margin-top: var(--sp-4); flex-wrap: wrap; }
+</style>

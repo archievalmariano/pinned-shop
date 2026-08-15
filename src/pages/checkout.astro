@@ -1,0 +1,223 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { link } from '../lib/link';
+---
+
+<BaseLayout title="Checkout (demo)" path="/checkout" description="A demonstration checkout for Pinned. No payment is processed and no order is placed.">
+  <div class="container--narrow section--tight checkout">
+    <div class="demo-banner">
+      <strong>Demo checkout.</strong> No payment processor is connected, no card details are collected,
+      and no order is placed. This is a walkthrough of the flow only.
+    </div>
+
+    <h1 class="display-4">Checkout</h1>
+
+    <div class="co-empty" data-co-empty hidden>
+      <p>There's nothing to check out. The cart is empty.</p>
+      <a href={link('/shop')} class="btn">Back to the shop</a>
+    </div>
+
+    <div class="co-grid" data-co-grid>
+      <form class="co-form" data-co-form novalidate>
+        <fieldset>
+          <legend>Where it would ship</legend>
+          <div class="co-row">
+            <div><label class="form-label" for="co-name">Full name</label><input class="field" id="co-name" name="name" required autocomplete="name" /></div>
+            <div><label class="form-label" for="co-phone">Mobile</label><input class="field" id="co-phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="09xx xxx xxxx" /></div>
+          </div>
+          <div><label class="form-label" for="co-addr">Address</label><input class="field" id="co-addr" name="address" required autocomplete="street-address" /></div>
+          <div class="co-row">
+            <div><label class="form-label" for="co-city">City</label><input class="field" id="co-city" name="city" required /></div>
+            <div><label class="form-label" for="co-zip">Postcode</label><input class="field" id="co-zip" name="zip" inputmode="numeric" /></div>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>How it would arrive</legend>
+          <label class="co-option"><input type="radio" name="ship" value="standard" checked /><span><strong>Standard</strong>, 3–5 days · ₱80</span></label>
+          <label class="co-option"><input type="radio" name="ship" value="rush" /><span><strong>Rush (Metro Manila)</strong>, next day · ₱160</span></label>
+          <label class="co-option"><input type="radio" name="ship" value="pickup" /><span><strong>Pick-up at a pop-up</strong>, free, eventually</span></label>
+        </fieldset>
+
+        <button type="submit" class="btn btn--block co-place">Place demo order</button>
+        <p class="co-disclaimer">Pressing this only shows a confirmation and clears your local cart.</p>
+      </form>
+
+      <aside class="co-summary">
+        <h2 class="co-sum-title">Order</h2>
+        <div data-co-lines></div>
+        <div class="co-sum-row"><span>Subtotal</span><span data-co-subtotal>₱0</span></div>
+        <div class="co-sum-row"><span>Shipping</span><span data-co-ship>₱80</span></div>
+        <div class="co-sum-row co-sum-total"><span>Total</span><span data-co-total>₱0</span></div>
+      </aside>
+    </div>
+
+    <div class="co-done" data-co-done hidden>
+      <div class="co-done-mark" aria-hidden="true"><span></span></div>
+      <h2 class="display-3">That would have worked.</h2>
+      <p>In a real shop, your pins would now be on their way. Here, we've cleared your cart and kept the good feeling.</p>
+      <p class="co-done-ref">Demo reference <strong data-co-ref>PIN-000000</strong></p>
+      <div class="co-done-actions">
+        <a href={link('/shop')} class="btn">Keep browsing</a>
+        <a href={link('/pinboard')} class="btn btn--ghost">Read the Pinboard</a>
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .checkout { padding-top: var(--sp-4); }
+  .demo-banner {
+    padding: var(--sp-3);
+    border: var(--rule-w) solid var(--ink);
+    border-left: 6px solid var(--brand);
+    border-radius: var(--r-sm);
+    background: var(--paper-2);
+    margin-bottom: var(--sp-4);
+    font-size: var(--step-0);
+  }
+  .co-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: var(--sp-5);
+    align-items: start;
+    margin-top: var(--sp-4);
+  }
+  .co-form { display: flex; flex-direction: column; gap: var(--sp-4); }
+  fieldset {
+    border: var(--rule-w) solid var(--ink);
+    border-radius: var(--r-md);
+    padding: var(--sp-4);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+    background: var(--card);
+  }
+  legend {
+    font-weight: 700;
+    font-size: var(--step--1);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0 0.5rem;
+  }
+  .co-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+  .co-option {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+    border: 1.5px solid var(--ink);
+    border-radius: var(--r-sm);
+    cursor: pointer;
+  }
+  .co-option:has(input:checked) { background: var(--paper-2); border-color: var(--ink); }
+  .co-disclaimer { font-size: var(--step--1); color: var(--ink-faint); text-align: center; }
+  .co-summary {
+    border: var(--rule-w-bold) solid var(--ink);
+    border-radius: var(--r-md);
+    padding: var(--sp-4);
+    background: var(--card);
+    position: sticky;
+    top: 90px;
+  }
+  .co-sum-title { font-size: var(--step-2); margin-bottom: var(--sp-3); }
+  .co-sum-row {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--sp-2) 0;
+    border-bottom: 1.5px solid var(--paper-3);
+  }
+  .co-sum-total {
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    border-bottom: none;
+    padding-top: var(--sp-3);
+  }
+  :global(.co-line) {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    padding: var(--sp-2) 0;
+    border-bottom: 1.5px solid var(--paper-3);
+    font-size: var(--step--1);
+  }
+  :global(.co-line-qty) { color: var(--ink-faint); }
+  .co-empty { text-align: center; padding: var(--sp-6) 0; }
+  .co-empty p { margin-bottom: var(--sp-3); color: var(--ink-soft); }
+  .co-done { text-align: center; padding: var(--sp-6) 0; }
+  .co-done-mark { display: grid; place-items: center; margin-bottom: var(--sp-4); }
+  .co-done-mark span {
+    width: 90px; height: 90px; border-radius: 50%;
+    background: var(--green); border: 3px solid var(--ink);
+    box-shadow: 0 6px 16px rgba(27,26,23,0.14);
+  }
+  .co-done p { color: var(--ink-soft); max-width: 44ch; margin: var(--sp-2) auto; }
+  .co-done-ref { font-size: var(--step--1); }
+  .co-done-actions { display: flex; gap: var(--sp-2); justify-content: center; margin-top: var(--sp-4); }
+  @media (max-width: 820px) {
+    .co-grid { grid-template-columns: 1fr; }
+    .co-summary { position: static; }
+    .co-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<script>
+  import { getCart, clearCart } from '../lib/cart';
+  import { formatPeso } from '../lib/format';
+  import { track } from '../lib/analytics';
+
+  const SHIP: Record<string, number> = { standard: 80, rush: 160, pickup: 0 };
+  const grid = document.querySelector('[data-co-grid]') as HTMLElement;
+  const emptyEl = document.querySelector('[data-co-empty]') as HTMLElement;
+  const doneEl = document.querySelector('[data-co-done]') as HTMLElement;
+  const linesEl = document.querySelector('[data-co-lines]') as HTMLElement;
+  const subEl = document.querySelector('[data-co-subtotal]') as HTMLElement;
+  const shipEl = document.querySelector('[data-co-ship]') as HTMLElement;
+  const totalEl = document.querySelector('[data-co-total]') as HTMLElement;
+  const form = document.querySelector('[data-co-form]') as HTMLFormElement;
+
+  function shipCost(): number {
+    const sel = form?.querySelector('input[name=ship]:checked') as HTMLInputElement | null;
+    return SHIP[sel?.value || 'standard'] ?? 80;
+  }
+  function render() {
+    const { lines, subtotal, count } = getCart();
+    if (count === 0) {
+      grid.hidden = true;
+      emptyEl.hidden = false;
+      return;
+    }
+    linesEl.innerHTML = lines
+      .map(
+        (l) => `<div class="co-line"><span>${l.product.name} <span class="co-line-qty">×${l.qty}</span></span><span>${formatPeso(l.lineTotal)}</span></div>`,
+      )
+      .join('');
+    subEl.textContent = formatPeso(subtotal);
+    const ship = shipCost();
+    shipEl.textContent = ship === 0 ? 'Free' : formatPeso(ship);
+    totalEl.textContent = formatPeso(subtotal + ship);
+    track({ name: 'begin_checkout', itemCount: count, subtotal });
+  }
+
+  form?.querySelectorAll('input[name=ship]').forEach((r) => r.addEventListener('change', render));
+  form?.addEventListener('submit', (e) => {
+    e.preventDefault();
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+    const { count, subtotal } = getCart();
+    if (count === 0) return;
+    const ref = 'PIN-' + Math.floor(100000 + Math.random() * 899999);
+    const refEl = document.querySelector('[data-co-ref]') as HTMLElement;
+    if (refEl) refEl.textContent = ref;
+    track({ name: 'begin_checkout', itemCount: count, subtotal });
+    clearCart();
+    grid.hidden = true;
+    emptyEl.hidden = true;
+    doneEl.hidden = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  render();
+</script>

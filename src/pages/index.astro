@@ -1,0 +1,324 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CollectionNav from '../components/CollectionNav.astro';
+import ProductCard from '../components/ProductCard.astro';
+import Newsletter from '../components/Newsletter.astro';
+import MarketplaceLinks from '../components/MarketplaceLinks.astro';
+import PinArt from '../components/PinArt.astro';
+import { products } from '../data/products';
+import { site } from '../data/site';
+import { formatPeso, formatDate } from '../lib/format';
+import { link } from '../lib/link';
+
+// The current drop leads the hero.
+const drop = products.find((p) => p.slug === 'last-trip-home')!;
+const heroSupporting = ['a-dugong', 'quayside', 'seen-847']
+  .map((s) => products.find((p) => p.slug === s)!)
+  .filter(Boolean);
+
+// New arrivals: newest by release date.
+const newArrivals = [...products]
+  .sort((a, b) => b.releasedAt.localeCompare(a.releasedAt) || a.name.localeCompare(b.name))
+  .slice(0, 8);
+
+const articles = (await getCollection('pinboard', ({ data }) => !data.draft))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 3);
+---
+
+<BaseLayout path="/">
+  <!-- HERO / CURRENT DROP -->
+  <section class="hero">
+    <div class="container hero-grid">
+      <div class="hero-copy">
+        <span class="chip chip--limited hero-chip">Limited · New drop</span>
+        <h1 class="hero-title font-serif">{drop.name}</h1>
+        <p class="hero-tagline">{drop.tagline}</p>
+        <p class="hero-meta">Numbered run of 200 · {formatPeso(drop.price)}</p>
+        <div class="hero-actions">
+          <a href={link(`/products/${drop.slug}`)} class="btn">Shop the drop</a>
+          <a href={link('/shop')} class="btn btn--ghost">All pins</a>
+        </div>
+      </div>
+
+      <div class="hero-art">
+        <div class="hero-pin" style={`--enamel:${drop.colorway}`}>
+          <PinArt art={drop.art} color={drop.colorway} colorAlt={drop.colorwayAlt} title={drop.name} />
+        </div>
+        <div class="hero-satellites">
+          {heroSupporting.map((p) => (
+            <a href={link(`/products/${p.slug}`)} class="hero-sat" style={`--enamel:${p.colorway}`} aria-label={p.name}>
+              <PinArt art={p.art} color={p.colorway} colorAlt={p.colorwayAlt} title={p.name} />
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLLECTIONS -->
+  <section class="section container">
+    <div class="section-head">
+      <h2 class="section-title">Shop by collection</h2>
+      <a href={link('/shop')} class="link-underline section-link">All pins</a>
+    </div>
+    <CollectionNav />
+  </section>
+
+  <!-- NEW ARRIVALS -->
+  <section class="section--tight container">
+    <div class="section-head">
+      <h2 class="section-title">New arrivals</h2>
+      <a href={link('/shop')} class="link-underline section-link">Shop all</a>
+    </div>
+    <div class="product-grid">
+      {newArrivals.map((p) => <ProductCard product={p} />)}
+    </div>
+  </section>
+
+  <!-- BRAND STATEMENT (single, restrained) -->
+  <section class="statement">
+    <div class="container--narrow statement-inner">
+      <p class="statement-line font-serif">{site.thought}</p>
+      <p class="statement-sub">
+        Enamel pins and small collectibles, made in Manila in short runs. Some are jokes, some are
+        souvenirs, a few are quietly sentimental.
+      </p>
+      <a href={link('/about')} class="link-underline statement-link">About Pinned</a>
+    </div>
+  </section>
+
+  <!-- PINBOARD -->
+  <section class="section container">
+    <div class="section-head">
+      <h2 class="section-title">From the Pinboard</h2>
+      <a href={link('/pinboard')} class="link-underline section-link">Read more</a>
+    </div>
+    <div class="pinboard-grid">
+      {articles.map((a) => (
+        <a href={link(`/pinboard/${a.id}`)} class="pb-card">
+          <span class="pb-cat">{a.data.category}</span>
+          <h3 class="pb-title font-serif">{a.data.title}</h3>
+          <p class="pb-dek">{a.data.dek}</p>
+          <span class="pb-meta">{formatDate(a.data.date.toISOString())} · {a.data.readingMinutes} min</span>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <!-- WHERE TO BUY + NEWSLETTER -->
+  <section class="section--tight container">
+    <div class="closer-grid">
+      <div class="closer-mkt">
+        <h2 class="section-title">Where to buy</h2>
+        <p class="closer-sub">Direct here, or through the marketplaces.</p>
+        <MarketplaceLinks />
+        <a href={link('/stockists')} class="link-underline closer-link">All stockists & pop-ups</a>
+      </div>
+      <Newsletter source="home" />
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  /* HERO */
+  .hero {
+    border-bottom: 1px solid var(--hair);
+    overflow: hidden;
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: var(--sp-5);
+    align-items: center;
+    padding-block: var(--sp-7) var(--sp-6);
+  }
+  .hero-chip {
+    margin-bottom: var(--sp-3);
+  }
+  .hero-title {
+    font-size: var(--step-5);
+    line-height: 0.95;
+  }
+  .hero-tagline {
+    font-size: var(--step-1);
+    color: var(--ink-soft);
+    margin-top: var(--sp-3);
+    max-width: 30ch;
+  }
+  .hero-meta {
+    margin-top: var(--sp-3);
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+    margin-top: var(--sp-4);
+  }
+  .hero-art {
+    position: relative;
+    display: grid;
+    place-items: center;
+  }
+  .hero-pin {
+    width: min(78%, 360px);
+    padding: var(--sp-5);
+    background: color-mix(in srgb, var(--enamel) 11%, var(--paper));
+    border-radius: 50%;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    rotate: -3deg;
+  }
+  .hero-satellites {
+    position: absolute;
+    right: 4%;
+    bottom: 0;
+    display: flex;
+    gap: var(--sp-2);
+  }
+  .hero-sat {
+    width: 74px;
+    height: 74px;
+    padding: 10px;
+    background: color-mix(in srgb, var(--enamel) 12%, var(--card));
+    border: 1px solid var(--hair);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    transition: transform 0.15s;
+  }
+  .hero-sat:hover {
+    transform: translateY(-3px);
+  }
+
+  /* section heads */
+  .section-title {
+    font-size: var(--step-2);
+    font-weight: 600;
+  }
+  .section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--sp-3);
+    margin-bottom: var(--sp-4);
+    flex-wrap: wrap;
+  }
+  .section-link {
+    font-weight: 500;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--sp-3);
+  }
+
+  /* brand statement */
+  .statement {
+    padding-block: var(--sp-7);
+    border-block: 1px solid var(--hair);
+    background: var(--paper-2);
+    margin-top: var(--sp-6);
+    text-align: center;
+  }
+  .statement-line {
+    font-size: var(--step-4);
+    line-height: 1;
+  }
+  .statement-sub {
+    margin: var(--sp-3) auto var(--sp-4);
+    max-width: 48ch;
+    color: var(--ink-soft);
+    font-size: var(--step-1);
+  }
+  .statement-link {
+    font-weight: 500;
+  }
+
+  /* pinboard */
+  .pinboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-4);
+  }
+  .pb-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--hair-strong);
+    transition: border-color 0.15s;
+  }
+  .pb-card:hover {
+    border-color: var(--ink);
+  }
+  .pb-cat {
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+  }
+  .pb-title {
+    font-size: var(--step-2);
+    line-height: 1.08;
+    font-weight: 500;
+  }
+  .pb-card:hover .pb-title {
+    color: var(--brand-ink);
+  }
+  .pb-dek {
+    color: var(--ink-soft);
+    flex: 1;
+  }
+  .pb-meta {
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+  }
+
+  /* closer */
+  .closer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: var(--sp-5);
+    align-items: center;
+  }
+  .closer-sub {
+    color: var(--ink-soft);
+    margin: var(--sp-2) 0 var(--sp-4);
+  }
+  .closer-link {
+    display: inline-block;
+    margin-top: var(--sp-4);
+    font-weight: 500;
+  }
+
+  @media (max-width: 1000px) {
+    .product-grid { grid-template-columns: repeat(3, 1fr); }
+    .pinboard-grid { grid-template-columns: 1fr; gap: var(--sp-3); }
+  }
+  @media (max-width: 860px) {
+    /* Stack the hero and lead with the copy so the product name, tagline, and
+       primary CTA sit above the fold on phones; the artwork follows below. */
+    .hero-grid {
+      grid-template-columns: 1fr;
+      padding-block: var(--sp-5);
+      gap: var(--sp-4);
+    }
+    .closer-grid { grid-template-columns: 1fr; }
+    .hero-copy { order: 0; }
+    .hero-art { order: 1; }
+    .hero-pin { width: min(64%, 300px); padding: var(--sp-4); }
+    .hero-satellites { position: static; margin-top: var(--sp-3); justify-content: center; }
+  }
+  @media (max-width: 640px) {
+    .product-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 400px) {
+    .product-grid { grid-template-columns: 1fr; }
+  }
+</style>

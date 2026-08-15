@@ -1,0 +1,237 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PinArt from '../../components/PinArt.astro';
+import ProductBuyBox from '../../components/ProductBuyBox.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import MarketplaceLinks from '../../components/MarketplaceLinks.astro';
+import { products, relatedProducts } from '../../data/products';
+import { collectionBySlug } from '../../data/collections';
+import { site } from '../../data/site';
+import { formatPeso, formatDate } from '../../lib/format';
+import { link } from '../../lib/link';
+
+export function getStaticPaths() {
+  return products.map((p) => ({ params: { slug: p.slug }, props: { product: p } }));
+}
+
+const { product } = Astro.props;
+const coll = collectionBySlug[product.collection];
+const related = relatedProducts(product.slug, 3);
+const statusText =
+  product.status === 'sold-out'
+    ? 'https://schema.org/OutOfStock'
+    : 'https://schema.org/InStock';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Product',
+  name: product.name,
+  description: product.description.join(' '),
+  category: coll.name,
+  brand: { '@type': 'Brand', name: site.name },
+  offers: {
+    '@type': 'Offer',
+    price: product.price,
+    priceCurrency: 'PHP',
+    availability: statusText,
+    url: new URL(link(`/products/${product.slug}`), Astro.site ?? site.url).toString(),
+  },
+};
+---
+
+<BaseLayout
+  title={product.name}
+  path={`/products/${product.slug}`}
+  description={product.tagline}
+  ogType="product"
+  jsonLd={jsonLd}
+>
+  <div class="container pdp">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={link('/shop')}>Shop</a> <span aria-hidden="true">/</span>
+      <a href={link(`/collections/${coll.slug}`)}>{coll.name}</a> <span aria-hidden="true">/</span>
+      <span>{product.name}</span>
+    </nav>
+
+    <div class="pdp-grid">
+      <div class="pdp-media" style={`--enamel:${product.colorway}`}>
+        <div class="pdp-art">
+          <PinArt art={product.art} color={product.colorway} colorAlt={product.colorwayAlt} title={product.name} />
+        </div>
+        <ul class="pdp-thumbs" aria-hidden="true">
+          <li class="thumb thumb--front"><span>Front</span></li>
+          <li class="thumb"><span>Back</span></li>
+          <li class="thumb"><span>On bag</span></li>
+        </ul>
+      </div>
+
+      <div class="pdp-info">
+        <a href={link(`/collections/${coll.slug}`)} class="pdp-coll">{coll.name}</a>
+        <h1 class="pdp-title font-serif">{product.name}</h1>
+        <p class="pdp-tagline">{product.tagline}</p>
+
+        <ProductBuyBox product={product} />
+
+        <div class="pdp-desc">
+          {product.description.map((para) => <p>{para}</p>)}
+        </div>
+
+        <details class="pdp-specs" open>
+          <summary>Details & specs</summary>
+          <ul>
+            {product.specs.map((s) => <li>{s}</li>)}
+            <li>Released {formatDate(product.releasedAt)}</li>
+          </ul>
+        </details>
+
+        <div class="pdp-mkt">
+          <MarketplaceLinks slug={product.slug} compact />
+        </div>
+
+        <p class="pdp-disclosure">Demo shop. Adding to cart is local to your browser, and nothing ships.</p>
+      </div>
+    </div>
+
+    {related.length > 0 && (
+      <section class="section--tight pdp-related">
+        <h2 class="pdp-related-heading">You may also like</h2>
+        <div class="related-grid">
+          {related.map((p) => <ProductCard product={p} />)}
+        </div>
+      </section>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .pdp { padding-top: var(--sp-4); }
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    margin-bottom: var(--sp-4);
+  }
+  .crumbs a { text-decoration: underline; text-underline-offset: 3px; }
+  .pdp-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-5);
+    align-items: start;
+  }
+  .pdp-media {
+    position: sticky;
+    top: 90px;
+  }
+  .pdp-art {
+    padding: var(--sp-5);
+    background: color-mix(in srgb, var(--enamel) 10%, var(--card));
+    border: 1px solid var(--hair);
+    border-radius: var(--r-lg);
+    display: grid;
+    place-items: center;
+  }
+  .pdp-art :global(svg) { width: min(70%, 340px); }
+  .pdp-thumbs {
+    display: flex;
+    gap: var(--sp-2);
+    margin-top: var(--sp-2);
+  }
+  .thumb {
+    flex: 1;
+    aspect-ratio: 1;
+    border: 1px solid var(--hair);
+    border-radius: var(--r-sm);
+    background: var(--paper-2);
+    display: grid;
+    place-items: center;
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+    font-weight: 500;
+  }
+  .thumb--front { background: color-mix(in srgb, var(--enamel) 14%, var(--card)); color: var(--ink-soft); }
+
+  .pdp-coll {
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--ink-faint);
+  }
+  .pdp-coll:hover { color: var(--ink); }
+  .pdp-title {
+    font-size: var(--step-4);
+    line-height: 1;
+    margin: var(--sp-2) 0;
+  }
+  .pdp-tagline {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--step-1);
+    color: var(--ink-soft);
+    margin-bottom: var(--sp-4);
+    max-width: 40ch;
+  }
+  .pdp-desc {
+    margin-top: var(--sp-4);
+    padding-top: var(--sp-3);
+    border-top: 1px solid var(--hair);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-2);
+    color: var(--ink-soft);
+  }
+  .pdp-specs {
+    margin-top: var(--sp-3);
+    border-top: 1px solid var(--hair);
+    padding-top: var(--sp-3);
+  }
+  .pdp-specs summary {
+    font-weight: 600;
+    cursor: pointer;
+    font-size: var(--step-0);
+  }
+  .pdp-specs ul {
+    margin-top: var(--sp-2);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1rem;
+  }
+  .pdp-specs li {
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    position: relative;
+    padding-left: 0.9rem;
+  }
+  .pdp-specs li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.55em;
+    width: 5px;
+    height: 5px;
+    background: var(--brand);
+    border-radius: 50%;
+  }
+  .pdp-mkt { margin-top: var(--sp-4); }
+  .pdp-disclosure {
+    margin-top: var(--sp-3);
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+  }
+  .pdp-related { margin-top: var(--sp-6); }
+  .pdp-related-heading {
+    font-size: var(--step-2);
+    font-weight: 600;
+    margin-bottom: var(--sp-3);
+  }
+  .related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-3);
+  }
+  @media (max-width: 860px) {
+    .pdp-grid { grid-template-columns: 1fr; }
+    .pdp-media { position: static; }
+    .related-grid { grid-template-columns: 1fr; }
+  }
+  @media (min-width: 861px) and (max-width: 1100px) {
+    .related-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>

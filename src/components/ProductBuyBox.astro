@@ -1,0 +1,271 @@
+---
+import type { Product } from '../data/types';
+import { formatPeso } from '../lib/format';
+
+interface Props {
+  product: Product;
+}
+const { product } = Astro.props;
+const soldOut = product.status === 'sold-out';
+---
+
+<div class="buybox" data-buybox data-slug={product.slug} data-base={product.price}>
+  <div class="buybox-price">
+    <span class="price-now" data-price>{formatPeso(product.price)}</span>
+    {product.status === 'low' && <span class="chip chip--limited">Last few</span>}
+    {soldOut && <span class="chip chip--sold">Sold out</span>}
+  </div>
+
+  {product.variants?.map((group) => (
+    <fieldset class="variant" data-group={group.id}>
+      <legend class="variant-legend">{group.label}</legend>
+      <div class="variant-choices">
+        {group.choices.map((choice, i) => (
+          <label class:list={['variant-pill', { 'is-disabled': choice.soldOut }]}>
+            <input
+              type="radio"
+              name={`v-${group.id}`}
+              value={choice.id}
+              data-delta={choice.priceDelta ?? 0}
+              checked={i === 0}
+              disabled={choice.soldOut}
+            />
+            <span>{choice.label}{choice.priceDelta ? ` +${formatPeso(choice.priceDelta)}` : ''}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  ))}
+
+  {!soldOut && (
+    <div class="buybox-actions">
+      <div class="qty" data-qty>
+        <button type="button" data-qty-dec aria-label="Decrease quantity">–</button>
+        <input type="text" inputmode="numeric" value="1" data-qty-input aria-label="Quantity" />
+        <button type="button" data-qty-inc aria-label="Increase quantity">+</button>
+      </div>
+      <button type="button" class="btn btn--block buybox-add" data-add>
+        Add to cart · <span data-add-price>{formatPeso(product.price)}</span>
+      </button>
+    </div>
+  )}
+
+  {soldOut && (
+    <div class="buybox-out">
+      <p>This one's between pressings. Save it and we'll keep the spot warm.</p>
+    </div>
+  )}
+
+  <button type="button" class="buybox-save" data-buybox-save data-slug={product.slug} aria-pressed="false">
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 21s-7-4.6-7-9.5A3.5 3.5 0 0 1 12 8a3.5 3.5 0 0 1 7 3.5C19 16.4 12 21 12 21z" />
+    </svg>
+    <span data-save-label>Pin for later</span>
+  </button>
+</div>
+
+<style>
+  .buybox {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+  }
+  .buybox-price {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+  }
+  .price-now {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 560;
+  }
+  .variant {
+    border: none;
+    padding: 0;
+  }
+  .variant-legend {
+    font-size: var(--step--1);
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: var(--sp-2);
+  }
+  .variant-choices {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+  }
+  .variant-pill {
+    position: relative;
+    cursor: pointer;
+  }
+  .variant-pill input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+  }
+  .variant-pill span {
+    display: inline-block;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--hair-strong);
+    border-radius: var(--r-sm);
+    font-weight: 500;
+    font-size: var(--step--1);
+    background: var(--card);
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .variant-pill:hover span {
+    border-color: var(--ink);
+  }
+  .variant-pill input:checked + span {
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .variant-pill input:focus-visible + span {
+    outline: 3px solid var(--brand);
+    outline-offset: 2px;
+  }
+  .variant-pill.is-disabled span {
+    opacity: 0.4;
+    text-decoration: line-through;
+    cursor: not-allowed;
+  }
+  .buybox-actions {
+    display: flex;
+    gap: var(--sp-2);
+    margin-top: var(--sp-2);
+  }
+  .qty {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--hair-strong);
+    border-radius: var(--r-sm);
+    background: var(--card);
+  }
+  .qty button {
+    width: 42px;
+    height: 100%;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+  .qty button:hover { color: var(--brand-ink); }
+  .qty input {
+    width: 42px;
+    text-align: center;
+    border: none;
+    background: none;
+    font-weight: 600;
+    padding: 0.6rem 0;
+  }
+  .buybox-add { flex: 1; }
+  .buybox-out {
+    padding: var(--sp-3);
+    border: 1px solid var(--hair-strong);
+    border-radius: var(--r-sm);
+    background: var(--paper-2);
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+  }
+  .buybox-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    align-self: flex-start;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: var(--step--1);
+    padding: 0.3rem 0;
+  }
+  .buybox-save:hover { color: var(--brand-ink); }
+  .buybox-save[aria-pressed='true'] { color: var(--brand-ink); }
+  .buybox-save[aria-pressed='true'] svg { fill: currentColor; }
+</style>
+
+<script>
+  import { addToCart } from '../lib/cart';
+  import { productBySlug } from '../data/products';
+  import { toggleSaved, isSaved, onSavedChange } from '../lib/wishlist';
+  import { track } from '../lib/analytics';
+  import { formatPeso } from '../lib/format';
+
+  const box = document.querySelector('[data-buybox]') as HTMLElement | null;
+  if (box) {
+    const slug = box.dataset.slug!;
+    const base = Number(box.dataset.base);
+    const product = productBySlug[slug];
+    const priceEl = box.querySelector('[data-price]') as HTMLElement;
+    const addPriceEl = box.querySelector('[data-add-price]') as HTMLElement | null;
+    const qtyInput = box.querySelector('[data-qty-input]') as HTMLInputElement | null;
+
+    function selection(): Record<string, string> {
+      const sel: Record<string, string> = {};
+      box.querySelectorAll('fieldset[data-group]').forEach((fs) => {
+        const g = (fs as HTMLElement).dataset.group!;
+        const checked = fs.querySelector('input:checked') as HTMLInputElement | null;
+        if (checked) sel[g] = checked.value;
+      });
+      return sel;
+    }
+    function unitPrice(): number {
+      let price = base;
+      box.querySelectorAll('input[type=radio]:checked').forEach((r) => {
+        price += Number((r as HTMLElement).dataset.delta || 0);
+      });
+      return price;
+    }
+    function refreshPrice() {
+      const p = formatPeso(unitPrice());
+      priceEl.textContent = p;
+      if (addPriceEl) addPriceEl.textContent = p;
+    }
+    function qty(): number {
+      const n = parseInt(qtyInput?.value || '1', 10);
+      return Number.isFinite(n) && n > 0 ? Math.min(n, 99) : 1;
+    }
+
+    box.querySelectorAll('input[type=radio]').forEach((r) =>
+      r.addEventListener('change', refreshPrice),
+    );
+    box.querySelector('[data-qty-inc]')?.addEventListener('click', () => {
+      if (qtyInput) qtyInput.value = String(qty() + 1);
+    });
+    box.querySelector('[data-qty-dec]')?.addEventListener('click', () => {
+      if (qtyInput) qtyInput.value = String(Math.max(1, qty() - 1));
+    });
+    qtyInput?.addEventListener('change', () => {
+      if (qtyInput) qtyInput.value = String(qty());
+    });
+
+    box.querySelector('[data-add]')?.addEventListener('click', () => {
+      addToCart(slug, selection(), qty());
+      window.dispatchEvent(new CustomEvent('pinned:cart:open'));
+    });
+
+    // Save toggle
+    const saveBtn = box.querySelector('[data-buybox-save]') as HTMLElement;
+    const saveLabel = box.querySelector('[data-save-label]') as HTMLElement;
+    function paintSave() {
+      const on = isSaved(slug);
+      saveBtn.setAttribute('aria-pressed', String(on));
+      saveLabel.textContent = on ? 'Pinned for later' : 'Pin for later';
+    }
+    saveBtn?.addEventListener('click', () => toggleSaved(slug));
+    onSavedChange(paintSave);
+    paintSave();
+
+    // product_view event
+    if (product) {
+      track({
+        name: 'product_view',
+        slug,
+        collection: product.collection,
+        price: product.price,
+      });
+    }
+    refreshPrice();
+  }
+</script>

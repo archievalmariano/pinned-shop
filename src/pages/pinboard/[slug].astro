@@ -1,0 +1,136 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { productBySlug } from '../../data/products';
+import { site } from '../../data/site';
+import { formatDate } from '../../lib/format';
+import { link } from '../../lib/link';
+
+export async function getStaticPaths() {
+  const entries = await getCollection('pinboard', ({ data }) => !data.draft);
+  return entries.map((entry) => ({ params: { slug: entry.id }, props: { entry } }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+const related = entry.data.relatedSlugs
+  .map((s) => productBySlug[s])
+  .filter(Boolean)
+  .slice(0, 3);
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: entry.data.title,
+  description: entry.data.dek,
+  datePublished: entry.data.date.toISOString(),
+  author: { '@type': 'Organization', name: entry.data.author },
+  publisher: { '@type': 'Organization', name: site.name },
+};
+---
+
+<BaseLayout
+  title={entry.data.title}
+  path={`/pinboard/${entry.id}`}
+  description={entry.data.dek}
+  ogType="article"
+  jsonLd={jsonLd}
+>
+  <article class="article" style={`--accent:${entry.data.accent}`}>
+    <header class="container--narrow article-head">
+      <nav class="crumbs" aria-label="Breadcrumb">
+        <a href={link('/pinboard')}>Pinboard</a> <span aria-hidden="true">/</span> <span>{entry.data.category}</span>
+      </nav>
+      <p class="art-cat">{entry.data.category}</p>
+      <h1 class="art-title">{entry.data.title}</h1>
+      <p class="art-dek">{entry.data.dek}</p>
+      <p class="art-meta">{formatDate(entry.data.date.toISOString())} · {entry.data.readingMinutes} min · {entry.data.author}</p>
+    </header>
+
+    <div class="container--narrow article-body">
+      <Content />
+    </div>
+
+    {related.length > 0 && (
+      <aside class="container--narrow article-related">
+        <h2 class="art-related-title">Loosely related, if you insist</h2>
+        <div class="art-related-grid">
+          {related.map((p) => <ProductCard product={p} quickAdd={false} />)}
+        </div>
+      </aside>
+    )}
+
+    <div class="container--narrow article-foot">
+      <a href={link('/pinboard')} class="link-underline">← Back to the Pinboard</a>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .article { padding-top: var(--sp-4); }
+  .crumbs {
+    font-size: var(--step--1);
+    color: var(--ink-soft);
+    margin-bottom: var(--sp-4);
+  }
+  .crumbs a { text-decoration: underline; text-underline-offset: 3px; }
+  .art-cat {
+    font-size: var(--step--1);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+  }
+  .art-title {
+    font-size: var(--step-4);
+    line-height: 1;
+    margin: var(--sp-2) 0 var(--sp-3);
+    max-width: 20ch;
+  }
+  .art-dek {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--step-2);
+    color: var(--ink-soft);
+  }
+  .art-meta {
+    margin-top: var(--sp-3);
+    font-size: var(--step--1);
+    color: var(--ink-faint);
+    padding-bottom: var(--sp-4);
+    border-bottom: var(--rule-w) solid var(--ink);
+  }
+  .article-body {
+    margin-top: var(--sp-4);
+    font-size: var(--step-1);
+    line-height: 1.7;
+  }
+  .article-body :global(p) { margin-bottom: var(--sp-3); }
+  .article-body :global(p:first-of-type::first-letter) {
+    font-family: var(--font-display);
+    font-size: 3.4em;
+    float: left;
+    line-height: 0.72;
+    padding: 0.05em 0.12em 0 0;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .article-body :global(strong) { color: var(--ink); }
+  .article-body :global(em) { font-style: italic; }
+  .article-related {
+    margin-top: var(--sp-6);
+    padding-top: var(--sp-4);
+    border-top: var(--rule-w) solid var(--ink);
+  }
+  .art-related-title { font-size: var(--step-2); margin-bottom: var(--sp-3); }
+  .art-related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--sp-3);
+  }
+  .article-foot { margin-top: var(--sp-5); }
+  @media (max-width: 700px) {
+    .art-related-grid { grid-template-columns: 1fr; }
+  }
+</style>

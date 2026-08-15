@@ -1,0 +1,154 @@
+---
+// "Currently stuck on" — a rotating spotlight. All eligible products are
+// server-rendered as slides; a small script cycles which one is visible so the
+// pin artwork stays fully pre-rendered (no client-side SVG assembly).
+import { stuckOnProducts } from '../data/products';
+import { formatPeso } from '../lib/format';
+import PinArt from './PinArt.astro';
+
+const items = stuckOnProducts;
+---
+
+<section class="stuck" data-stuck aria-labelledby="stuck-title">
+  <div class="stuck-head">
+    <p class="eyebrow">Currently stuck on</p>
+    <button type="button" class="stuck-shuffle" data-stuck-shuffle>
+      Show me another
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="stuck-stage">
+    {items.map((p, i) => (
+      <article class:list={['stuck-slide', { 'is-current': i === 0 }]} data-stuck-slide={i} style={`--enamel:${p.colorway}`}>
+        <div class="stuck-art">
+          <PinArt art={p.art} color={p.colorway} colorAlt={p.colorwayAlt} title={p.name} />
+        </div>
+        <div class="stuck-info">
+          <h2 id={i === 0 ? 'stuck-title' : undefined} class="stuck-name">{p.name}</h2>
+          <p class="stuck-tagline">{p.tagline}</p>
+          <p class="stuck-price">{formatPeso(p.price)}</p>
+          <a href={`/products/${p.slug}`} class="btn btn--ghost">Look closer</a>
+        </div>
+      </article>
+    ))}
+  </div>
+</section>
+
+<style>
+  .stuck {
+    border: var(--rule-w-bold) solid var(--ink);
+    border-radius: var(--r-md);
+    background: var(--card);
+    overflow: hidden;
+  }
+  .stuck-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-3) var(--sp-4);
+    border-bottom: var(--rule-w) solid var(--ink);
+    background: var(--paper-2);
+  }
+  .stuck-shuffle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 600;
+    font-size: var(--step--1);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.3rem 0.4rem;
+  }
+  .stuck-shuffle:hover { color: var(--brand-ink); }
+  .stuck-stage {
+    position: relative;
+  }
+  .stuck-slide {
+    display: none;
+    grid-template-columns: 300px 1fr;
+    align-items: center;
+    gap: var(--sp-5);
+    padding: var(--sp-5);
+  }
+  .stuck-slide.is-current {
+    display: grid;
+    animation: fade 0.3s ease;
+  }
+  .stuck-art {
+    padding: var(--sp-3);
+    background: color-mix(in srgb, var(--enamel) 12%, var(--card));
+    border: var(--rule-w) solid var(--ink);
+    border-radius: 50%;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+  }
+  .stuck-name {
+    font-size: var(--step-4);
+    line-height: 0.98;
+  }
+  .stuck-tagline {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: var(--step-1);
+    color: var(--ink-soft);
+    margin: var(--sp-3) 0;
+    max-width: 32ch;
+  }
+  .stuck-price {
+    font-weight: 600;
+    font-size: var(--step-1);
+    margin-bottom: var(--sp-3);
+  }
+  @keyframes fade {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @media (max-width: 720px) {
+    .stuck-slide.is-current {
+      grid-template-columns: 1fr;
+      justify-items: start;
+    }
+    .stuck-art {
+      width: 200px;
+    }
+  }
+</style>
+
+<script>
+  const root = document.querySelector('[data-stuck]');
+  if (root) {
+    const slides = Array.from(root.querySelectorAll('[data-stuck-slide]')) as HTMLElement[];
+    let current = 0;
+    let timer: number | undefined;
+
+    function show(next: number) {
+      slides[current]?.classList.remove('is-current');
+      current = (next + slides.length) % slides.length;
+      slides[current]?.classList.add('is-current');
+    }
+    function advance() {
+      // step by a prime-ish offset so it doesn't feel like a simple loop
+      show(current + 1 + Math.floor(Math.random() * 2));
+    }
+    function start() {
+      stop();
+      timer = window.setInterval(advance, 5000);
+    }
+    function stop() {
+      if (timer) window.clearInterval(timer);
+    }
+
+    root.querySelector('[data-stuck-shuffle]')?.addEventListener('click', () => {
+      advance();
+      start();
+    });
+    root.addEventListener('mouseenter', stop);
+    root.addEventListener('mouseleave', start);
+    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) start();
+  }
+</script>

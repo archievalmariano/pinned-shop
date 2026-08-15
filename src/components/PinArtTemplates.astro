@@ -1,0 +1,17 @@
+---
+// Hidden, inert <template> elements holding the real PinArt SVG for every
+// product, keyed by slug. Client-rendered surfaces (cart drawer, cart page)
+// clone these instead of drawing generic placeholders — reusing the existing
+// PinArt component with no image files and no extra requests. <template>
+// content is parsed but never rendered, so it costs no layout/paint.
+import { products } from '../data/products';
+import PinArt from './PinArt.astro';
+---
+
+<div class="pin-templates" hidden aria-hidden="true">
+  {products.map((p) => (
+    <template data-pin-template={p.slug}>
+      <PinArt art={p.art} color={p.colorway} colorAlt={p.colorwayAlt} title={p.name} />
+    </template>
+  ))}
+</div>
