@@ -326,7 +326,7 @@ export const products: Product[] = [
     slug: 'a-dugong',
     name: 'A Dugong',
     tagline: "No, that's a Merlion.",
-    collection: 'places',
+    collection: 'limited',
     price: 320,
     art: 'merlion',
     colorway: '#2e9ba6',
