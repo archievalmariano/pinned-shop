@@ -1,6 +1,5 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
 
 // Deployed as a GitHub Pages project site at:
 //   https://archievalmariano.com/pinned-shop/
@@ -15,7 +14,6 @@ const BASE = '/pinned-shop';
 export default defineConfig({
   site: SITE,
   base: BASE,
-  integrations: [sitemap()],
   // Static output — this is a front-end/demo shop with no server runtime yet.
   output: 'static',
   trailingSlash: 'ignore',

@@ -21,15 +21,17 @@ interface Props {
 const {
   title,
   description = site.description,
-  path = Astro.url.pathname,
+  path = '/',
   jsonLd,
   ogType = 'website',
 } = Astro.props;
 
 const fullTitle = title ? `${title} · ${site.name}` : `${site.name} · ${site.thought}`;
-// Astro.url.pathname already includes the configured base, so it is the correct
-// canonical without any extra prefixing.
-const canonical = new URL(Astro.url.pathname, Astro.site ?? site.url).toString();
+// Every POC URL uses the deployed directory form so the canonical resolves to
+// the same URL that GitHub Pages serves instead of a redirecting variant.
+const linkedPath = link(path);
+const canonicalPath = linkedPath.endsWith('/') ? linkedPath : `${linkedPath}/`;
+const canonical = new URL(canonicalPath, Astro.site ?? site.url).toString();
 const ogImage = new URL(link('/og.png'), Astro.site ?? site.url).toString();
 const siteRoot = new URL(link('/'), Astro.site ?? site.url).toString();
 
@@ -58,6 +60,7 @@ const lds = [orgLd, ...(jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [
     <link rel="canonical" href={canonical} />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#f4efe4" />
 
     <!-- Open Graph -->
@@ -72,7 +75,6 @@ const lds = [orgLd, ...(jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
 
-    <link rel="sitemap" href={link('/sitemap-index.xml')} />
     {lds.map((ld) => (
       <script type="application/ld+json" set:html={JSON.stringify(ld)} />
     ))}
